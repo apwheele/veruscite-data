@@ -36,19 +36,18 @@ Andrew Wheeler
 Fabricated citations in academic papers have grown sharply since the
 widespread adoption of generative AI writing tools. A Lancet audit of
 2.5 million biomedical papers found hallucinated reference rates rising
-12-fold between 2023 and early 2026 (Topaz et al., 2026). GPTZero’s
-audit of NeurIPS 2025 found over 100 confirmed hallucinated citations
-across 53 accepted papers despite rigorous peer review. Separate
+12-fold between 2023 and early 2026 (Topaz et al. 2026). GPTZero’s audit
+of NeurIPS 2025 found over 100 confirmed hallucinated citations across
+53 accepted papers despite rigorous peer review (GPTZero 2026). Separate
 estimates project roughly 147,000 hallucinated citations across arXiv,
-bioRxiv, SSRN, and PMC in 2025 alone.
+bioRxiv, SSRN, and PMC in 2025 alone (Multiple authors 2026).
 
 Existing peer review and editorial safeguards largely fail to catch
 these errors before publication. The problem spans disciplines:
 biomedical research, AI/ML conferences, legal filings, and government
 reports.
 
-While AI use is driving a surge in publications (see [Wheeler,
-2026](https://crimede-coder.com/blogposts/2026/LLMsForMortals) for a
+While AI use is driving a surge in publications (see Wheeler 2026a for a
 practical overview), the same large language models that create this
 problem can also be used to verify citations at scale. VerusCite
 ([veruscite.com](https://veruscite.com)) is a tool to automatically
@@ -79,12 +78,11 @@ can make informed decisions quickly.
 
 ### Comparison to Similar Tools
 
-This approach is similar to [Pangram](https://www.pangram.co/), which
-also emphasizes low false positive rates for AI-generated content
-detection. Their published materials discuss the same tradeoff: when
-base rates of problematic content are low, even small false positive
-rates cause most flagged items to be false alarms (see [Pangram’s
-blog](https://www.pangram.co/resources)).
+This approach is similar to Pangram (Pangram, n.d.), which also
+emphasizes low false positive rates for AI-generated content detection.
+Their published materials discuss the same tradeoff: when base rates of
+problematic content are low, even small false positive rates cause most
+flagged items to be false alarms.
 
 ## Pipeline Architecture
 
@@ -136,11 +134,8 @@ The V1 validation corpus contains **2287** hand-labeled citations across
 
 - Papers with known hallucinations identified by others on social media
   (Chris Carothers, David Buil-Gil)
-- GPTZero’s NeurIPS 2025 audit
-  ([gptzero.me/news/neurips](https://gptzero.me/news/neurips/))
-- Papers flagged by [Reviewer3](https://reviewer3.com/live/arxiv) (see
-  also [@Reviewer3 on
-  X](https://x.com/Reviewer3/status/2069835348923019450))
+- GPTZero’s NeurIPS 2025 audit (GPTZero 2026)
+- Papers flagged by Reviewer3 (Reviewer3, n.d.)
 - A ChatGPT deep-research output where all 12 citations are fabricated
 - Clean papers (dissertation excerpts, open-access criminology, PLoS ONE
   articles)
@@ -160,10 +155,10 @@ the ground truth.
 <div class="cell-output cell-output-display cell-output-markdown"
 execution_count="3">
 
-| Model                 | OCR       | Real | Correct | Missing | Extra | Rate (%) | Cost (\$) |
-|:----------------------|:----------|-----:|--------:|--------:|------:|---------:|----------:|
-| gemini-3.1-flash-lite | pypdfium2 | 2287 |    2284 |       3 |    12 |     99.9 |   1.15626 |
-| gpt-5.4-nano          | pypdfium2 | 2287 |    2282 |       5 |    13 |     99.8 |  0.882243 |
+| Model                 | OCR       | Real | Correct | Missing | Extra | Rate (%) | Cost (USD) |
+|:----------------------|:----------|-----:|--------:|--------:|------:|---------:|-----------:|
+| gemini-3.1-flash-lite | pypdfium2 | 2287 |    2284 |       3 |    12 |     99.9 |       1.16 |
+| gpt-5.4-nano          | pypdfium2 | 2287 |    2282 |       5 |    13 |     99.8 |       0.88 |
 
 </div>
 
@@ -183,12 +178,12 @@ missed or merged entries. Results were largely similar overall.
 <div class="cell-output cell-output-display cell-output-markdown"
 execution_count="4">
 
-| Model                         | Provider   | FP → Hallucination | FP → Minor Error | Hallucination Recall | Not-Verified Recall | CrossRef Verified | Cost (\$) |
-|:------------------------------|:-----------|:-------------------|:-----------------|:---------------------|:--------------------|------------------:|----------:|
-| google/gemini-3-flash-preview | perplexity | 0.1% (1)           | 1.8% (36)        | 73.6% (103/140)      | 73.9% (252/341)     |              1331 |   21.8093 |
-| google/gemini-3.1-flash-lite  | perplexity | 0.4% (8)           | 2.5% (49)        | 70.7% (99/140)       | 78.0% (266/341)     |              1331 |    14.774 |
-| gpt-5.4-mini                  | openai     | 0.1% (2)           | 3.6% (71)        | 61.4% (86/140)       | 81.8% (279/341)     |              1331 |   43.2983 |
-| gpt-5.4-nano                  | openai     | 0.3% (6)           | 4.3% (83)        | 57.9% (81/140)       | 82.1% (280/341)     |              1331 |    23.527 |
+| Model                         | Provider   | FP Hallucination | FP Minor Error | Hallucination Recall | Not-Verified Recall | CrossRef Verified | Cost (USD) |
+|:------------------------------|:-----------|:-----------------|:---------------|:---------------------|:--------------------|------------------:|-----------:|
+| google/gemini-3-flash-preview | perplexity | 0.1% (1)         | 1.8% (36)      | 73.6% (103/140)      | 73.9% (252/341)     |              1331 |      21.81 |
+| google/gemini-3.1-flash-lite  | perplexity | 0.4% (8)         | 2.5% (49)      | 70.7% (99/140)       | 78.0% (266/341)     |              1331 |      14.77 |
+| gpt-5.4-mini                  | openai     | 0.1% (2)         | 3.6% (71)      | 61.4% (86/140)       | 81.8% (279/341)     |              1331 |       43.3 |
+| gpt-5.4-nano                  | openai     | 0.3% (6)         | 4.3% (83)      | 57.9% (81/140)       | 82.1% (280/341)     |              1331 |      23.53 |
 
 </div>
 
@@ -209,12 +204,12 @@ Key metrics:
 <div class="cell-output cell-output-display cell-output-markdown"
 execution_count="5">
 
-| Model                         | Provider   | Token Cost ($) |   Search Cost ($) | Total ($) |   Per Paper ($) |         |      |
-|:------------------------------|:-----------|-----------------------------------:|----------------------------:|--------:|-----:|
-| google/gemini-3-flash-preview | perplexity |                            17.1293 |                        4.68 | 21.8093 | 0.61 |
-| google/gemini-3.1-flash-lite  | perplexity |                            9.57894 |                       5.195 |  14.774 | 0.41 |
-| gpt-5.4-mini                  | openai     |                            25.1983 |                        18.1 | 43.2983 |  1.2 |
-| gpt-5.4-nano                  | openai     |                            7.04699 |                       16.48 |  23.527 | 0.65 |
+| Model                         | Provider   | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) |
+|:------------------------------|:-----------|-----------------:|------------------:|------------:|----------------:|
+| google/gemini-3-flash-preview | perplexity |            17.13 |              4.68 |       21.81 |            0.61 |
+| google/gemini-3.1-flash-lite  | perplexity |             9.58 |               5.2 |       14.77 |            0.41 |
+| gpt-5.4-mini                  | openai     |             25.2 |              18.1 |        43.3 |             1.2 |
+| gpt-5.4-nano                  | openai     |             7.05 |             16.48 |       23.53 |            0.65 |
 
 </div>
 
@@ -282,6 +277,61 @@ quarto render report.qmd
 ## AI Use
 
 This paper was generated entirely using Claude Opus 4.6, reviewing prior
-works by Andrew Wheeler. See
-<https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/>
-for an overview of this workflow.
+works by Andrew Wheeler. See Wheeler (2026b) for an overview of this
+workflow.
+
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
+
+<div id="ref-gptzero2026neurips" class="csl-entry">
+
+GPTZero. 2026. “GPTZero Finds 100 New Hallucinations in NeurIPS 2025
+Accepted Papers.” <https://gptzero.me/news/neurips/>.
+
+</div>
+
+<div id="ref-arxiv2026hallucinations" class="csl-entry">
+
+Multiple authors. 2026. “LLM Hallucinations in the Wild: Large-Scale
+Evidence from Non-Existent Citations.” arXiv preprint.
+<https://arxiv.org/pdf/2605.07723>.
+
+</div>
+
+<div id="ref-pangram" class="csl-entry">
+
+Pangram. n.d. “Pangram: AI Content Detection.”
+<https://www.pangram.co/>.
+
+</div>
+
+<div id="ref-reviewer3" class="csl-entry">
+
+Reviewer3. n.d. “Reviewer3: Live arXiv Reference Checking.”
+<https://reviewer3.com/live/arxiv>.
+
+</div>
+
+<div id="ref-topaz2026fabricated" class="csl-entry">
+
+Topaz, Maxim et al. 2026. “Fabricated Citations: An Audit Across 2.5
+Million Biomedical Papers.” *The Lancet*.
+<https://doi.org/10.1016/s0140-6736(26)00603-3>.
+
+</div>
+
+<div id="ref-wheeler2026llms" class="csl-entry">
+
+Wheeler, Andrew P. 2026a. “LLMs for Mortals.”
+<https://crimede-coder.com/blogposts/2026/LLMsForMortals>.
+
+</div>
+
+<div id="ref-wheeler2026claude" class="csl-entry">
+
+———. 2026b. “Using Claude Code to Help Me Write.”
+<https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/>.
+
+</div>
+
+</div>

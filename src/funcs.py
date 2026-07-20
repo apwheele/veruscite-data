@@ -44,6 +44,7 @@ def extraction_table() -> pd.DataFrame:
     df["extraction_rate"] = (
         df["correctly_extracted"] / df["real_citations"] * 100
     ).round(1)
+    df["cost_usd"] = df["cost_usd"].round(2)
     cols = [
         "model",
         "ocr_backend",
@@ -63,7 +64,7 @@ def extraction_table() -> pd.DataFrame:
         "Missing",
         "Extra",
         "Rate (%)",
-        "Cost ($)",
+        "Cost (USD)",
     ]
     return out
 
@@ -71,6 +72,7 @@ def extraction_table() -> pd.DataFrame:
 def checking_table() -> pd.DataFrame:
     """Formatted checker results table (key metrics only)."""
     df = checking_report(V1_DIR)
+    df["cost_usd"] = df["cost_usd"].round(2)
     cols = [
         "model",
         "provider",
@@ -85,12 +87,12 @@ def checking_table() -> pd.DataFrame:
     out.columns = [
         "Model",
         "Provider",
-        "FP → Hallucination",
-        "FP → Minor Error",
+        "FP Hallucination",
+        "FP Minor Error",
         "Hallucination Recall",
         "Not-Verified Recall",
         "CrossRef Verified",
-        "Cost ($)",
+        "Cost (USD)",
     ]
     return out
 
@@ -105,9 +107,12 @@ def checking_full_table() -> pd.DataFrame:
 def cost_comparison_table() -> pd.DataFrame:
     """Cost breakdown for checker runs."""
     df = checking_report(V1_DIR)
+    df["token_cost_usd"] = df["token_cost_usd"].round(2)
+    df["web_search_cost_usd"] = df["web_search_cost_usd"].round(2)
+    df["cost_usd"] = df["cost_usd"].round(2)
     cols = ["model", "provider", "token_cost_usd", "web_search_cost_usd", "cost_usd"]
     out = df[cols].copy()
-    out.columns = ["Model", "Provider", "Token Cost ($)", "Search Cost ($)", "Total ($)"]
+    out.columns = ["Model", "Provider", "Token Cost (USD)", "Search Cost (USD)", "Total (USD)"]
     return out
 
 

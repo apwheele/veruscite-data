@@ -10,6 +10,7 @@ format:
   gfm:
     toc: true
     number-sections: true
+bibliography: references.bib
 jupyter: python3
 execute:
   echo: false
@@ -40,11 +41,11 @@ def md_table(df):
 
 ## The Problem
 
-Fabricated citations in academic papers have grown sharply since the widespread adoption of generative AI writing tools. A Lancet audit of 2.5 million biomedical papers found hallucinated reference rates rising 12-fold between 2023 and early 2026 (Topaz et al., 2026). GPTZero's audit of NeurIPS 2025 found over 100 confirmed hallucinated citations across 53 accepted papers despite rigorous peer review. Separate estimates project roughly 147,000 hallucinated citations across arXiv, bioRxiv, SSRN, and PMC in 2025 alone.
+Fabricated citations in academic papers have grown sharply since the widespread adoption of generative AI writing tools. A Lancet audit of 2.5 million biomedical papers found hallucinated reference rates rising 12-fold between 2023 and early 2026 [@topaz2026fabricated]. GPTZero's audit of NeurIPS 2025 found over 100 confirmed hallucinated citations across 53 accepted papers despite rigorous peer review [@gptzero2026neurips]. Separate estimates project roughly 147,000 hallucinated citations across arXiv, bioRxiv, SSRN, and PMC in 2025 alone [@arxiv2026hallucinations].
 
 Existing peer review and editorial safeguards largely fail to catch these errors before publication. The problem spans disciplines: biomedical research, AI/ML conferences, legal filings, and government reports.
 
-While AI use is driving a surge in publications (see [Wheeler, 2026](https://crimede-coder.com/blogposts/2026/LLMsForMortals) for a practical overview), the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite.com](https://veruscite.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
+While AI use is driving a surge in publications [see @wheeler2026llms for a practical overview], the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite.com](https://veruscite.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
 
 ## Approach
 
@@ -58,7 +59,7 @@ The application is designed for human-in-the-loop review. Each citation's verifi
 
 ### Comparison to Similar Tools
 
-This approach is similar to [Pangram](https://www.pangram.co/), which also emphasizes low false positive rates for AI-generated content detection. Their published materials discuss the same tradeoff: when base rates of problematic content are low, even small false positive rates cause most flagged items to be false alarms (see [Pangram's blog](https://www.pangram.co/resources)).
+This approach is similar to Pangram [@pangram], which also emphasizes low false positive rates for AI-generated content detection. Their published materials discuss the same tradeoff: when base rates of problematic content are low, even small false positive rates cause most flagged items to be false alarms.
 
 ## Pipeline Architecture
 
@@ -104,8 +105,8 @@ n_not_found = int(totals.get("not_found", 0))
 The V1 validation corpus contains **`{python} n_citations`** hand-labeled citations across **36 documents**. Sources are intentionally heterogeneous:
 
 - Papers with known hallucinations identified by others on social media (Chris Carothers, David Buil-Gil)
-- GPTZero's NeurIPS 2025 audit ([gptzero.me/news/neurips](https://gptzero.me/news/neurips/))
-- Papers flagged by [Reviewer3](https://reviewer3.com/live/arxiv) (see also [@Reviewer3 on X](https://x.com/Reviewer3/status/2069835348923019450))
+- GPTZero's NeurIPS 2025 audit [@gptzero2026neurips]
+- Papers flagged by Reviewer3 [@reviewer3]
 - A ChatGPT deep-research output where all 12 citations are fabricated
 - Clean papers (dissertation excerpts, open-access criminology, PLoS ONE articles)
 - MDPI and preprint samples
@@ -146,7 +147,7 @@ Key metrics:
 #| label: tbl-cost
 #| tbl-cap: "Cost breakdown per full-corpus checker run (36 papers)"
 costs = cost_comparison_table()
-costs["Per Paper ($)"] = (costs["Total ($)"] / 36).round(2)
+costs["Per Paper (USD)"] = (costs["Total (USD)"] / 36).round(2)
 md_table(costs)
 ```
 
@@ -190,4 +191,4 @@ quarto render report.qmd
 
 ## AI Use
 
-This paper was generated entirely using Claude Opus 4.6, reviewing prior works by Andrew Wheeler. See <https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/> for an overview of this workflow.
+This paper was generated entirely using Claude Opus 4.6, reviewing prior works by Andrew Wheeler. See @wheeler2026claude for an overview of this workflow.
