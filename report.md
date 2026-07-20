@@ -95,12 +95,12 @@ VerusCite processes documents in two stages:
 
 The checker assigns each citation one of four statuses:
 
-| Status            | Meaning                                                                           |
-|-------------------|-----------------------------------------------------------------------------------|
-| **Verified**      | Citation confirmed to exist via CrossRef or web search                            |
-| **Minor Error**   | Citation likely exists but has metadata discrepancies (wrong year, volume, pages) |
-| **Hallucination** | No evidence the cited work exists as described                                    |
-| **Not Found**     | Unable to confirm or deny (insufficient search results)                           |
+| Status            | Meaning                                                                                                                  |
+|-------------------|--------------------------------------------------------------------------------------------------------------------------|
+| **Verified**      | Citation confirmed to exist via CrossRef or web search                                                                   |
+| **Minor Error**   | Citation likely exists but has metadata discrepancies (wrong year, volume, pages)                                        |
+| **Hallucination** | No evidence the cited work exists as described                                                                           |
+| **Not Found**     | Unable to confirm or deny – includes bare URL citations and paywalled/very recent works with insufficient search results |
 
 ### Verification Method
 
@@ -120,8 +120,8 @@ experiences periodic outages or rate limits. Results reported here
 represent the range across these configurations.
 
 Cost is kept low by using smaller models with web search rather than
-large frontier models. A full corpus check (2,200+ citations) runs
-between \$15-\$44 depending on the model.
+large frontier models. A full corpus check (36 papers, 2,200+ citations)
+runs between \$0.41-\$1.20 per paper depending on the model.
 
 ## Ground Truth
 
@@ -140,15 +140,10 @@ The V1 validation corpus contains **2287** hand-labeled citations across
   articles)
 - MDPI and preprint samples
 
-Label distribution:
-
-    - Verified: 1945 (85.0%)
-    - Minor Error: 148 (6.5%)
-    - Hallucination: 140 (6.1%)
-    - Not Found: 54 (2.4%)
-
-The corpus skews heavily toward verified citations (as real documents
-do), which makes false positive rate the critical metric.
+Of the 2287 citations, 1945 (85.0%) are verified, 148 (6.5%) have minor
+errors, 140 (6.1%) are hallucinations, and 54 (2.4%) are not found. The
+corpus skews heavily toward verified citations (as real documents do),
+which makes false positive rate the critical metric.
 
 ## Extraction Results
 
@@ -156,83 +151,38 @@ Citation extraction uses an LLM to parse the document text and identify
 individual references. The table below shows extraction accuracy against
 the ground truth.
 
-``` python
-ext = extraction_table()
-ext
-```
+<div class="cell-output cell-output-display cell-output-markdown"
+execution_count="3">
 
-<div class="cell-output cell-output-display" execution_count="4">
-
-<div>
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-&#10;    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-&#10;    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-
-|     | Model                 | OCR       | Real | Correct | Missing | Extra | Rate (%) | Cost (\$) |
-|-----|-----------------------|-----------|------|---------|---------|-------|----------|-----------|
-| 0   | gemini-3.1-flash-lite | pypdfium2 | 2287 | 2284    | 3       | 12    | 99.9     | 1.156257  |
-| 1   | gpt-5.4-nano          | pypdfium2 | 2287 | 2282    | 5       | 13    | 99.8     | 0.882243  |
-
-</div>
-
-</div>
+| Model                 | OCR       | Real | Correct | Missing | Extra | Rate (%) | Cost (\$) |
+|:----------------------|:----------|-----:|--------:|--------:|------:|---------:|----------:|
+| gemini-3.1-flash-lite | pypdfium2 | 2287 |    2284 |       3 |    12 |     99.9 |   1.15626 |
+| gpt-5.4-nano          | pypdfium2 | 2287 |    2282 |       5 |    13 |     99.8 |  0.882243 |
 
 </div>
 
 Extraction is very accurate across models. Gemini 3.1 Flash Lite with
-pypdfium2 correctly extracts over 99.8% of citations at under \$1.20 for
-the full corpus. The few “extra” rows are typically page footers,
-footnotes, or duplicate listings that the LLM picks up in addition to
-the actual bibliography.
+pypdfium2 correctly extracts over 99.8% of citations at under \$0.03 per
+paper for the full corpus. The few “extra” rows are typically page
+footers, footnotes, or duplicate listings that the LLM picks up in
+addition to the actual bibliography.
 
-The `liteparse` OCR backend (a lighter PDF text extractor) produces
-slightly more misses than pypdfium2, which handles multi-column layouts
-and ligatures better.
+I also tested `liteparse` with the markdown export format, which tended
+to produce slightly more artifacts – it does not distinguish line breaks
+for individual citations as cleanly as pypdfium2, producing a few more
+missed or merged entries. Results were largely similar overall.
 
 ## Checker Results
 
-``` python
-chk = checking_table()
-chk
-```
+<div class="cell-output cell-output-display cell-output-markdown"
+execution_count="4">
 
-<div class="cell-output cell-output-display" execution_count="5">
-
-<div>
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-&#10;    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-&#10;    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-
-|     | Model                         | Provider   | FP → Hallucination | FP → Minor Error | Hallucination Recall | Not-Verified Recall | CrossRef Verified | Cost (\$) |
-|-----|-------------------------------|------------|--------------------|------------------|----------------------|---------------------|-------------------|-----------|
-| 0   | google/gemini-3-flash-preview | perplexity | 0.1% (1)           | 1.8% (36)        | 73.6% (103/140)      | 73.9% (252/341)     | 1331              | 21.809336 |
-| 1   | google/gemini-3.1-flash-lite  | perplexity | 0.4% (8)           | 2.5% (49)        | 70.7% (99/140)       | 78.0% (266/341)     | 1331              | 14.773963 |
-| 2   | gpt-5.4-mini                  | openai     | 0.1% (2)           | 3.6% (71)        | 61.4% (86/140)       | 81.8% (279/341)     | 1331              | 43.298306 |
-| 3   | gpt-5.4-nano                  | openai     | 0.3% (6)           | 4.3% (83)        | 57.9% (81/140)       | 82.1% (280/341)     | 1331              | 23.526988 |
-
-</div>
-
-</div>
+| Model                         | Provider   | FP → Hallucination | FP → Minor Error | Hallucination Recall | Not-Verified Recall | CrossRef Verified | Cost (\$) |
+|:------------------------------|:-----------|:-------------------|:-----------------|:---------------------|:--------------------|------------------:|----------:|
+| google/gemini-3-flash-preview | perplexity | 0.1% (1)           | 1.8% (36)        | 73.6% (103/140)      | 73.9% (252/341)     |              1331 |   21.8093 |
+| google/gemini-3.1-flash-lite  | perplexity | 0.4% (8)           | 2.5% (49)        | 70.7% (99/140)       | 78.0% (266/341)     |              1331 |    14.774 |
+| gpt-5.4-mini                  | openai     | 0.1% (2)           | 3.6% (71)        | 61.4% (86/140)       | 81.8% (279/341)     |              1331 |   43.2983 |
+| gpt-5.4-nano                  | openai     | 0.3% (6)           | 4.3% (83)        | 57.9% (81/140)       | 82.1% (280/341)     |              1331 |    23.527 |
 
 </div>
 
@@ -250,45 +200,22 @@ Key metrics:
 
 ### Cost Breakdown
 
-``` python
-costs = cost_comparison_table()
-costs
-```
+<div class="cell-output cell-output-display cell-output-markdown"
+execution_count="5">
 
-<div class="cell-output cell-output-display" execution_count="6">
-
-<div>
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-&#10;    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-&#10;    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-
-|     | Model                         | Provider   | Token Cost (\$) | Search Cost (\$) | Total (\$) |
-|-----|-------------------------------|------------|-----------------|------------------|------------|
-| 0   | google/gemini-3-flash-preview | perplexity | 17.129258       | 4.680            | 21.809336  |
-| 1   | google/gemini-3.1-flash-lite  | perplexity | 9.578944        | 5.195            | 14.773963  |
-| 2   | gpt-5.4-mini                  | openai     | 25.198293       | 18.100           | 43.298306  |
-| 3   | gpt-5.4-nano                  | openai     | 7.046987        | 16.480           | 23.526988  |
-
-</div>
-
-</div>
+| Model                         | Provider   | Token Cost ($) |   Search Cost ($) | Total ($) |   Per Paper ($) |         |      |
+|:------------------------------|:-----------|-----------------------------------:|----------------------------:|--------:|-----:|
+| google/gemini-3-flash-preview | perplexity |                            17.1293 |                        4.68 | 21.8093 | 0.61 |
+| google/gemini-3.1-flash-lite  | perplexity |                            9.57894 |                       5.195 |  14.774 | 0.41 |
+| gpt-5.4-mini                  | openai     |                            25.1983 |                        18.1 | 43.2983 |  1.2 |
+| gpt-5.4-nano                  | openai     |                            7.04699 |                       16.48 |  23.527 | 0.65 |
 
 </div>
 
 Perplexity-hosted models are substantially cheaper than direct OpenAI
 for equivalent or better accuracy. The Gemini 3.1 Flash Lite
-configuration provides the best cost/accuracy ratio at ~\$15 per full
-run.
+configuration provides the best cost/accuracy ratio at ~\$0.41 per
+paper.
 
 ### CrossRef as First Pass
 
@@ -310,9 +237,9 @@ Known limitations of the current evaluation:
 - Ground truth labels for some documents were seeded from the checker
   itself and hand-reviewed, which may introduce subtle bias toward the
   checker’s own patterns.
-- “Not found” is an inherently ambiguous category – some citations exist
-  but are difficult to locate via web search (paywalled, very recent, or
-  in non-English databases).
+- “Not found” is an inherently ambiguous category – some citations are
+  bare URLs, others exist but are difficult to locate via web search
+  (paywalled, very recent, or in non-English databases).
 - The corpus over-represents arXiv preprints relative to other domains
   (law, humanities, clinical medicine).
 
