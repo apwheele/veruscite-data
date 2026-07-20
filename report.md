@@ -310,9 +310,10 @@ Reviewer3. n.d. “Reviewer3: Live arXiv Reference Checking.”
 
 <div id="ref-topaz2026fabricated" class="csl-entry">
 
-Topaz, Maxim et al. 2026. “Fabricated Citations: An Audit Across 2.5
-Million Biomedical Papers.” *The Lancet*.
-<https://doi.org/10.1016/s0140-6736(26)00603-3>.
+Topaz, Maxim, Nir Roguin, Pallavi Gupta, Zhihong Zhang, and Laura-Maria
+Peltonen. 2026. “Fabricated Citations: An Audit Across 2.5 Million
+Biomedical Papers.” *The Lancet* 407 (10541): 1779–81.
+<https://doi.org/10.1016/S0140-6736(26)00603-3>.
 
 </div>
 
