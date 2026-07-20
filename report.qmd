@@ -41,11 +41,11 @@ def md_table(df):
 
 ## The Problem
 
-Fabricated citations in academic papers have grown sharply since the widespread adoption of generative AI writing tools. A Lancet audit of 2.5 million biomedical papers found hallucinated reference rates rising 12-fold between 2023 and early 2026 [@topaz2026fabricated]. GPTZero's audit of NeurIPS 2025 found over 100 confirmed hallucinated citations across 53 accepted papers despite rigorous peer review [@gptzero2026neurips]. Separate estimates project roughly 147,000 hallucinated citations across arXiv, bioRxiv, SSRN, and PMC in 2025 alone [@arxiv2026hallucinations].
+Fabricated citations in academic papers have grown sharply since the widespread adoption of generative AI writing tools. A Lancet audit of 2.5 million biomedical papers found hallucinated reference rates rising 12-fold between 2023 and early 2026 [@topaz2026fabricated]. GPTZero's audit of NeurIPS 2025 found over 100 confirmed hallucinated citations across 53 accepted papers despite rigorous peer review [@gptzero2026neurips]. Separate estimates project roughly 147,000 hallucinated citations across arXiv, bioRxiv, SSRN, and PMC in 2025 alone [@zhao2026llmhallucinationswildlargescale].
 
 Existing peer review and editorial safeguards largely fail to catch these errors before publication. The problem spans disciplines: biomedical research, AI/ML conferences, legal filings, and government reports.
 
-While AI use is driving a surge in publications [see @wheeler2026llms for a practical overview], the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite.com](https://veruscite.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
+While AI use is driving a surge in publications [see @wheeler2026llmbook for a practical overview], the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite.com](https://veruscite.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
 
 ## Approach
 
@@ -59,7 +59,7 @@ The application is designed for human-in-the-loop review. Each citation's verifi
 
 ### Comparison to Similar Tools
 
-This approach is similar to Pangram [@pangram], which also emphasizes low false positive rates for AI-generated content detection. Their published materials discuss the same tradeoff: when base rates of problematic content are low, even small false positive rates cause most flagged items to be false alarms.
+This approach is similar to Pangram, which also emphasizes low false positive rates for AI-generated content detection. Their published materials discuss the same tradeoff: when base rates of problematic content are low, even small false positive rates cause most flagged items to be false alarms [@emi2024falsepositives].
 
 ## Pipeline Architecture
 
@@ -189,6 +189,8 @@ pip install -r requirements.txt
 quarto render report.qmd
 ```
 
-## AI Use
+## AI Use Disclosure
 
 This paper was generated entirely using Claude Opus 4.6, reviewing prior works by Andrew Wheeler. See @wheeler2026claude for an overview of this workflow.
+
+## References

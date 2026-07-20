@@ -29,7 +29,9 @@ Andrew Wheeler
   Steps](#limitations-and-next-steps)
 - [<span class="toc-section-number">9</span>
   Reproducibility](#reproducibility)
-- [<span class="toc-section-number">10</span> AI Use](#ai-use)
+- [<span class="toc-section-number">10</span> AI Use
+  Disclosure](#ai-use-disclosure)
+- [<span class="toc-section-number">11</span> References](#references)
 
 ## The Problem
 
@@ -40,15 +42,15 @@ widespread adoption of generative AI writing tools. A Lancet audit of
 of NeurIPS 2025 found over 100 confirmed hallucinated citations across
 53 accepted papers despite rigorous peer review (GPTZero 2026). Separate
 estimates project roughly 147,000 hallucinated citations across arXiv,
-bioRxiv, SSRN, and PMC in 2025 alone (Multiple authors 2026).
+bioRxiv, SSRN, and PMC in 2025 alone (Zhao et al. 2026).
 
 Existing peer review and editorial safeguards largely fail to catch
 these errors before publication. The problem spans disciplines:
 biomedical research, AI/ML conferences, legal filings, and government
 reports.
 
-While AI use is driving a surge in publications (see Wheeler 2026a for a
-practical overview), the same large language models that create this
+While AI use is driving a surge in publications (see A. Wheeler 2026 for
+a practical overview), the same large language models that create this
 problem can also be used to verify citations at scale. VerusCite
 ([veruscite.com](https://veruscite.com)) is a tool to automatically
 extract and verify citations from uploaded documents. This report
@@ -78,11 +80,11 @@ can make informed decisions quickly.
 
 ### Comparison to Similar Tools
 
-This approach is similar to Pangram (Pangram, n.d.), which also
-emphasizes low false positive rates for AI-generated content detection.
-Their published materials discuss the same tradeoff: when base rates of
-problematic content are low, even small false positive rates cause most
-flagged items to be false alarms.
+This approach is similar to Pangram, which also emphasizes low false
+positive rates for AI-generated content detection. Their published
+materials discuss the same tradeoff: when base rates of problematic
+content are low, even small false positive rates cause most flagged
+items to be false alarms (Emi 2024).
 
 ## Pipeline Architecture
 
@@ -274,34 +276,28 @@ pip install -r requirements.txt
 quarto render report.qmd
 ```
 
-## AI Use
+## AI Use Disclosure
 
 This paper was generated entirely using Claude Opus 4.6, reviewing prior
-works by Andrew Wheeler. See Wheeler (2026b) for an overview of this
-workflow.
+works by Andrew Wheeler. See A. P. Wheeler (2026) for an overview of
+this workflow.
+
+## References
 
 <div id="refs" class="references csl-bib-body hanging-indent"
 entry-spacing="0">
+
+<div id="ref-emi2024falsepositives" class="csl-entry">
+
+Emi, Bradley. 2024. “All about False Positives in AI Detectors.”
+<https://www.pangram.com/blog/all-about-false-positives-in-ai-detectors>.
+
+</div>
 
 <div id="ref-gptzero2026neurips" class="csl-entry">
 
 GPTZero. 2026. “GPTZero Finds 100 New Hallucinations in NeurIPS 2025
 Accepted Papers.” <https://gptzero.me/news/neurips/>.
-
-</div>
-
-<div id="ref-arxiv2026hallucinations" class="csl-entry">
-
-Multiple authors. 2026. “LLM Hallucinations in the Wild: Large-Scale
-Evidence from Non-Existent Citations.” arXiv preprint.
-<https://arxiv.org/pdf/2605.07723>.
-
-</div>
-
-<div id="ref-pangram" class="csl-entry">
-
-Pangram. n.d. “Pangram: AI Content Detection.”
-<https://www.pangram.co/>.
 
 </div>
 
@@ -320,17 +316,26 @@ Million Biomedical Papers.” *The Lancet*.
 
 </div>
 
-<div id="ref-wheeler2026llms" class="csl-entry">
+<div id="ref-wheeler2026llmbook" class="csl-entry">
 
-Wheeler, Andrew P. 2026a. “LLMs for Mortals.”
-<https://crimede-coder.com/blogposts/2026/LLMsForMortals>.
+Wheeler, Andrew. 2026. *Large Language Models for Mortals: A Practical
+Guide for Analysts with Python*. Crime De-Coder.
 
 </div>
 
 <div id="ref-wheeler2026claude" class="csl-entry">
 
-———. 2026b. “Using Claude Code to Help Me Write.”
+Wheeler, Andrew P. 2026. “Using Claude Code to Help Me Write.”
 <https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/>.
+
+</div>
+
+<div id="ref-zhao2026llmhallucinationswildlargescale" class="csl-entry">
+
+Zhao, Zhenyue, Yihe Wang, Toby Stuart, Mathijs De Vaan, Paul Ginsparg,
+and Yian Yin. 2026. “LLM Hallucinations in the Wild: Large-Scale
+Evidence from Non-Existent Citations.”
+<https://arxiv.org/abs/2605.07723>.
 
 </div>
 
