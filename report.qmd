@@ -44,7 +44,7 @@ Fabricated citations in academic papers have grown sharply since the widespread 
 
 Existing peer review and editorial safeguards largely fail to catch these errors before publication. The problem spans disciplines: biomedical research, AI/ML conferences, legal filings, and government reports.
 
-VerusCite ([veruscite.com](https://veruscite.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
+While AI use is driving a surge in publications (see [Wheeler, 2026](https://crimede-coder.com/blogposts/2026/LLMsForMortals) for a practical overview), the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite.com](https://veruscite.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
 
 ## Approach
 
@@ -156,6 +156,12 @@ Perplexity-hosted models are substantially cheaper than direct OpenAI for equiva
 
 Across all checker runs, approximately **1,331** of ~1,946 verified citations are confirmed via static CrossRef lookup alone (no web search needed). This is roughly 68% of verified citations resolved without any LLM cost, which keeps per-citation expenses low and latency down.
 
+## Privacy
+
+VerusCite uses only zero data retention (ZDR) models from all providers. Uploaded documents are not used for model training by any third party.
+
+Additionally, the pipeline minimizes what is sent to external LLMs. Citation extraction uses text search on the locally-extracted PDF text first -- only the citation strings themselves are sent to an LLM for structured parsing. During verification, only the parsed citation metadata (title, authors, year) is sent to web search, not the full document text. The full PDF content never leaves the server.
+
 ## Limitations and Next Steps
 
 The V1 corpus is heterogeneous by design, but 36 documents is a limited sample. The next evaluation (V2) will use the same prompts and pipeline but a **completely different validation set** -- different documents, different domains, different sources of known hallucinations. This ensures the system is not overtrained on the particular examples in V1.
@@ -181,3 +187,7 @@ To regenerate this report:
 pip install -r requirements.txt
 quarto render report.qmd
 ```
+
+## AI Use
+
+This paper was generated entirely using Claude Opus 4.6, reviewing prior works by Andrew Wheeler. See <https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/> for an overview of this workflow.

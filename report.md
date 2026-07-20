@@ -24,10 +24,12 @@ Andrew Wheeler
     Breakdown](#cost-breakdown)
   - [<span class="toc-section-number">6.2</span> CrossRef as First
     Pass](#crossref-as-first-pass)
-- [<span class="toc-section-number">7</span> Limitations and Next
+- [<span class="toc-section-number">7</span> Privacy](#privacy)
+- [<span class="toc-section-number">8</span> Limitations and Next
   Steps](#limitations-and-next-steps)
-- [<span class="toc-section-number">8</span>
+- [<span class="toc-section-number">9</span>
   Reproducibility](#reproducibility)
+- [<span class="toc-section-number">10</span> AI Use](#ai-use)
 
 ## The Problem
 
@@ -45,9 +47,13 @@ these errors before publication. The problem spans disciplines:
 biomedical research, AI/ML conferences, legal filings, and government
 reports.
 
-VerusCite ([veruscite.com](https://veruscite.com)) is a tool to
-automatically extract and verify citations from uploaded documents. This
-report documents the accuracy of the V1 verification pipeline against a
+While AI use is driving a surge in publications (see [Wheeler,
+2026](https://crimede-coder.com/blogposts/2026/LLMsForMortals) for a
+practical overview), the same large language models that create this
+problem can also be used to verify citations at scale. VerusCite
+([veruscite.com](https://veruscite.com)) is a tool to automatically
+extract and verify citations from uploaded documents. This report
+documents the accuracy of the V1 verification pipeline against a
 hand-labeled ground truth corpus.
 
 ## Approach
@@ -224,6 +230,18 @@ citations are confirmed via static CrossRef lookup alone (no web search
 needed). This is roughly 68% of verified citations resolved without any
 LLM cost, which keeps per-citation expenses low and latency down.
 
+## Privacy
+
+VerusCite uses only zero data retention (ZDR) models from all providers.
+Uploaded documents are not used for model training by any third party.
+
+Additionally, the pipeline minimizes what is sent to external LLMs.
+Citation extraction uses text search on the locally-extracted PDF text
+first – only the citation strings themselves are sent to an LLM for
+structured parsing. During verification, only the parsed citation
+metadata (title, authors, year) is sent to web search, not the full
+document text. The full PDF content never leaves the server.
+
 ## Limitations and Next Steps
 
 The V1 corpus is heterogeneous by design, but 36 documents is a limited
@@ -260,3 +278,10 @@ To regenerate this report:
 pip install -r requirements.txt
 quarto render report.qmd
 ```
+
+## AI Use
+
+This paper was generated entirely using Claude Opus 4.6, reviewing prior
+works by Andrew Wheeler. See
+<https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/>
+for an overview of this workflow.
