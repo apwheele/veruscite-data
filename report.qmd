@@ -1,7 +1,7 @@
 ---
 title: "VerusCite V1 Benchmark: Citation Verification Accuracy"
 author: "Andrew Wheeler"
-date: "2026-07-20"
+date: "2026-07-22"
 format:
   pdf:
     toc: true
@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(".").resolve()))
 from src.funcs import (
+    V1_DIR,
     ground_truth_summary,
     ground_truth_totals,
     extraction_table,
@@ -32,7 +33,7 @@ from src.metrics import checking_report, extraction_report, load_ground_truth
 from IPython.display import Markdown
 import pandas as pd
 
-V1 = Path("v1")
+V1 = V1_DIR
 
 def md_table(df):
     """Render a DataFrame as a markdown table (no row index)."""
@@ -115,17 +116,32 @@ Of the `{python} n_citations` citations, `{python} n_verified` (`{python} f"{100
 
 ## Extraction Results
 
-Citation extraction uses an LLM to parse the document text and identify individual references. The table below shows extraction accuracy against the ground truth.
+Citation extraction uses an LLM to parse the document text and identify individual references. The table below shows extraction accuracy **and wall-clock speed** against the ground truth (latest kept runs, 2026-07-22).
 
 ```{python}
 #| label: tbl-extraction
-#| tbl-cap: "Extraction accuracy by model and OCR backend"
+#| tbl-cap: "Extraction accuracy and speed by model (pypdfium2 OCR)"
 md_table(extraction_table())
 ```
 
-Extraction is very accurate across models. Gemini 3.1 Flash Lite with pypdfium2 correctly extracts over 99.8% of citations at under $0.03 per paper for the full corpus. The few "extra" rows are typically page footers, footnotes, or duplicate listings that the LLM picks up in addition to the actual bibliography.
+```{python}
+#| output: false
+ext = extraction_report(V1)
+ext_sorted = ext.sort_values("correctly_extracted", ascending=False).reset_index(drop=True)
+default_row = ext[ext["model"] == "gemini-3.1-flash-lite"].iloc[0]
+nano_rows = ext[ext["model"] == "gpt-5.4-nano"]
+nano_row = nano_rows.iloc[0] if len(nano_rows) else None
+default_rate = 100.0 * float(default_row["correctly_extracted"]) / float(default_row["real_citations"])
+default_wall_min = float(default_row["wall_elapsed_seconds"]) / 60.0
+_dpm = default_row["docs_per_minute"]
+default_dpm = float(_dpm) if pd.notna(_dpm) else float("nan")
+```
 
-I also tested `liteparse` with the markdown export format, which tended to produce slightly more artifacts -- it does not distinguish line breaks for individual citations as cleanly as pypdfium2, producing a few more missed or merged entries. Results were largely similar overall.
+Extraction is very accurate across models. **Gemini 3.1 Flash Lite is the default production extraction model**: it correctly extracts about **`{python} f"{default_rate:.2f}"`%** of citations (highest correct count, fewest missing/extra among the kept runs) and finishes the full 36-document corpus in about **`{python} f"{default_wall_min:.1f}"` minutes** wall time (~`{python} f"{default_dpm:.1f}"` docs/min), roughly twice as fast as `gpt-5.4-nano` on the same batch. Cost remains on the order of a few cents per paper for the full corpus.
+
+The few "extra" rows that remain are typically table fragments or rare non-bibliography lines the model still surfaces; numbered discursive footnotes and author bios are filtered in the current pipeline.
+
+`gpt-5.4-nano` is retained as a comparison baseline. Both runs use `pypdfium2` for PDF text extraction.
 
 ## Checker Results
 
@@ -175,12 +191,12 @@ Known limitations of the current evaluation:
 
 ## Reproducibility
 
-All data for this report is public at [github.com/apwheele/veruscite-data](https://github.com/apwheele/veruscite-data). The `v1/` directory contains:
+All data for this report is public at [github.com/apwheele/veruscite-data](https://github.com/apwheele/veruscite-data). The `V1/` directory contains:
 
 - `ground_truth.csv` -- hand-labeled citations with `expected_status`
-- `extraction_run/` -- raw extraction outputs per model
+- `extraction_run/` -- raw extraction outputs per model (kept: Gemini 3.1 Flash Lite + gpt-5.4-nano, 2026-07-22)
 - `checking_run/` -- raw checker outputs per model
-- `manifest.json` -- run IDs used in this report
+- `manifest.json` -- run IDs used in this report (`default_extraction_model`: `gemini-3.1-flash-lite`)
 
 To regenerate this report:
 
@@ -191,6 +207,6 @@ quarto render report.qmd
 
 ## AI Use Disclosure
 
-This paper was generated entirely using Claude Opus 4.6, reviewing prior works by Andrew Wheeler. See @wheeler2026claude for an overview of this workflow.
+This paper was prepared with AI assistance. Drafting and earlier iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works by Andrew Wheeler (see @wheeler2026claude for that workflow). Updates for the 2026-07-22 extraction default (Gemini 3.1 Flash Lite), speed metrics, and this disclosure were assisted by **Grok 4.5** (xAI). Ground-truth labels, model-default decisions, and final review are human.
 
 ## References

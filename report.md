@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-07-20
+2026-07-22
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -101,12 +101,12 @@ VerusCite processes documents in two stages:
 
 The checker assigns each citation one of four statuses:
 
-| Status            | Meaning                                                                                                                  |
-|-------------------|--------------------------------------------------------------------------------------------------------------------------|
-| **Verified**      | Citation confirmed to exist via CrossRef or web search                                                                   |
-| **Minor Error**   | Citation likely exists but has metadata discrepancies (wrong year, volume, pages)                                        |
-| **Hallucination** | No evidence the cited work exists as described                                                                           |
-| **Not Found**     | Unable to confirm or deny – includes bare URL citations and paywalled/very recent works with insufficient search results |
+| Status | Meaning |
+|----|----|
+| **Verified** | Citation confirmed to exist via CrossRef or web search |
+| **Minor Error** | Citation likely exists but has metadata discrepancies (wrong year, volume, pages) |
+| **Hallucination** | No evidence the cited work exists as described |
+| **Not Found** | Unable to confirm or deny – includes bare URL citations and paywalled/very recent works with insufficient search results |
 
 ### Verification Method
 
@@ -151,41 +151,61 @@ which makes false positive rate the critical metric.
 ## Extraction Results
 
 Citation extraction uses an LLM to parse the document text and identify
-individual references. The table below shows extraction accuracy against
-the ground truth.
+individual references. The table below shows extraction accuracy **and
+wall-clock speed** against the ground truth (latest kept runs,
+2026-07-22).
+
+<div id="tbl-extraction">
+
+Table 1: Extraction accuracy and speed by model (pypdfium2 OCR)
 
 <div class="cell-output cell-output-display cell-output-markdown"
 execution_count="3">
 
-| Model                 | OCR       | Real | Correct | Missing | Extra | Rate (%) | Cost (USD) |
-|:----------------------|:----------|-----:|--------:|--------:|------:|---------:|-----------:|
-| gemini-3.1-flash-lite | pypdfium2 | 2287 |    2284 |       3 |    12 |     99.9 |       1.16 |
-| gpt-5.4-nano          | pypdfium2 | 2287 |    2282 |       5 |    13 |     99.8 |       0.88 |
+| Model | OCR | Real | Correct | Missing | Extra | Rate (%) | Wall (min) | Docs/min | Cost (USD) |
+|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|
+| gemini-3.1-flash-lite | pypdfium2 | 2287 | 2285 | 2 | 8 | 99.9 | 4 | 9.1 | 1.17 |
+| gpt-5.4-nano | pypdfium2 | 2287 | 2283 | 4 | 13 | 99.8 | 8.5 | 4.2 | 0.9 |
 
 </div>
 
-Extraction is very accurate across models. Gemini 3.1 Flash Lite with
-pypdfium2 correctly extracts over 99.8% of citations at under \$0.03 per
-paper for the full corpus. The few “extra” rows are typically page
-footers, footnotes, or duplicate listings that the LLM picks up in
-addition to the actual bibliography.
+</div>
 
-I also tested `liteparse` with the markdown export format, which tended
-to produce slightly more artifacts – it does not distinguish line breaks
-for individual citations as cleanly as pypdfium2, producing a few more
-missed or merged entries. Results were largely similar overall.
+Extraction is very accurate across models. **Gemini 3.1 Flash Lite is
+the default production extraction model**: it correctly extracts about
+**99.91%** of citations (highest correct count, fewest missing/extra
+among the kept runs) and finishes the full 36-document corpus in about
+**4.0 minutes** wall time (~9.1 docs/min), roughly twice as fast as
+`gpt-5.4-nano` on the same batch. Cost remains on the order of a few
+cents per paper for the full corpus.
+
+The few “extra” rows that remain are typically table fragments or rare
+non-bibliography lines the model still surfaces; numbered discursive
+footnotes and author bios are filtered in the current pipeline.
+
+`gpt-5.4-nano` is retained as a comparison baseline. Both runs use
+`pypdfium2` for PDF text extraction.
 
 ## Checker Results
 
-<div class="cell-output cell-output-display cell-output-markdown"
-execution_count="4">
+<div id="tbl-checking">
 
-| Model                         | Provider   | FP Hallucination | FP Minor Error | Hallucination Recall | Not-Verified Recall | CrossRef Verified | Cost (USD) |
-|:------------------------------|:-----------|:-----------------|:---------------|:---------------------|:--------------------|------------------:|-----------:|
-| google/gemini-3-flash-preview | perplexity | 0.1% (1)         | 1.8% (36)      | 73.6% (103/140)      | 73.9% (252/341)     |              1331 |      21.81 |
-| google/gemini-3.1-flash-lite  | perplexity | 0.4% (8)         | 2.5% (49)      | 70.7% (99/140)       | 78.0% (266/341)     |              1331 |      14.77 |
-| gpt-5.4-mini                  | openai     | 0.1% (2)         | 3.6% (71)      | 61.4% (86/140)       | 81.8% (279/341)     |              1331 |       43.3 |
-| gpt-5.4-nano                  | openai     | 0.3% (6)         | 4.3% (83)      | 57.9% (81/140)       | 82.1% (280/341)     |              1331 |      23.53 |
+Table 2: Checker accuracy by model/provider
+
+<div class="cell-output cell-output-display cell-output-markdown"
+execution_count="5">
+
+| Model | Provider | FP Hallucination | FP Minor Error | Hallucination Recall | Not-Verified Recall | CrossRef Verified | Cost (USD) |
+|:---|:---|:---|:---|:---|:---|---:|---:|
+| gemini-3.5-flash-lite | gemini | 0.1% (2) | 1.4% (27) | 62.9% (88/140) | 66.6% (227/341) | 1331 | 13.6 |
+| google/gemini-3-flash-preview | perplexity | 0.2% (4) | 1.5% (30) | 74.3% (104/140) | 71.6% (244/341) | 1345 | 19.87 |
+| google/gemini-3-flash-preview | perplexity | 0.1% (1) | 1.8% (36) | 73.6% (103/140) | 73.9% (252/341) | 1331 | 21.81 |
+| google/gemini-3.1-flash-lite | perplexity | 0.4% (8) | 2.5% (49) | 70.7% (99/140) | 78.0% (266/341) | 1331 | 14.77 |
+| gpt-5.4-mini | openai | 0.2% (4) | 3.1% (61) | 57.1% (80/140) | 81.8% (279/341) | 1346 | 38.56 |
+| gpt-5.4-mini | openai | 0.1% (2) | 3.6% (71) | 61.4% (86/140) | 81.8% (279/341) | 1331 | 43.3 |
+| gpt-5.4-nano | openai | 0.3% (6) | 4.3% (83) | 57.9% (81/140) | 82.1% (280/341) | 1331 | 23.53 |
+
+</div>
 
 </div>
 
@@ -203,15 +223,24 @@ Key metrics:
 
 ### Cost Breakdown
 
-<div class="cell-output cell-output-display cell-output-markdown"
-execution_count="5">
+<div id="tbl-cost">
 
-| Model                         | Provider   | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) |
-|:------------------------------|:-----------|-----------------:|------------------:|------------:|----------------:|
-| google/gemini-3-flash-preview | perplexity |            17.13 |              4.68 |       21.81 |            0.61 |
-| google/gemini-3.1-flash-lite  | perplexity |             9.58 |               5.2 |       14.77 |            0.41 |
-| gpt-5.4-mini                  | openai     |             25.2 |              18.1 |        43.3 |             1.2 |
-| gpt-5.4-nano                  | openai     |             7.05 |             16.48 |       23.53 |            0.65 |
+Table 3: Cost breakdown per full-corpus checker run (36 papers)
+
+<div class="cell-output cell-output-display cell-output-markdown"
+execution_count="6">
+
+| Model | Provider | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) |
+|:---|:---|---:|---:|---:|---:|
+| gemini-3.5-flash-lite | gemini | 5.33 | 8.27 | 13.6 | 0.38 |
+| google/gemini-3-flash-preview | perplexity | 15.53 | 4.34 | 19.87 | 0.55 |
+| google/gemini-3-flash-preview | perplexity | 17.13 | 4.68 | 21.81 | 0.61 |
+| google/gemini-3.1-flash-lite | perplexity | 9.58 | 5.2 | 14.77 | 0.41 |
+| gpt-5.4-mini | openai | 23.11 | 15.45 | 38.56 | 1.07 |
+| gpt-5.4-mini | openai | 25.2 | 18.1 | 43.3 | 1.2 |
+| gpt-5.4-nano | openai | 7.05 | 16.48 | 23.53 | 0.65 |
+
+</div>
 
 </div>
 
@@ -262,12 +291,14 @@ Known limitations of the current evaluation:
 
 All data for this report is public at
 [github.com/apwheele/veruscite-data](https://github.com/apwheele/veruscite-data).
-The `v1/` directory contains:
+The `V1/` directory contains:
 
 - `ground_truth.csv` – hand-labeled citations with `expected_status`
-- `extraction_run/` – raw extraction outputs per model
+- `extraction_run/` – raw extraction outputs per model (kept: Gemini 3.1
+  Flash Lite + gpt-5.4-nano, 2026-07-22)
 - `checking_run/` – raw checker outputs per model
 - `manifest.json` – run IDs used in this report
+  (`default_extraction_model`: `gemini-3.1-flash-lite`)
 
 To regenerate this report:
 
@@ -278,32 +309,35 @@ quarto render report.qmd
 
 ## AI Use Disclosure
 
-This paper was generated entirely using Claude Opus 4.6, reviewing prior
-works by Andrew Wheeler. See A. P. Wheeler (2026) for an overview of
-this workflow.
+This paper was prepared with AI assistance. Drafting and earlier
+iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works
+by Andrew Wheeler (see A. P. Wheeler (2026) for that workflow). Updates
+for the 2026-07-22 extraction default (Gemini 3.1 Flash Lite), speed
+metrics, and this disclosure were assisted by **Grok 4.5** (xAI).
+Ground-truth labels, model-default decisions, and final review are
+human.
 
 ## References
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
 <div id="ref-emi2024falsepositives" class="csl-entry">
 
-Emi, Bradley. 2024. “All about False Positives in AI Detectors.”
+Emi, Bradley. 2024. *All about False Positives in AI Detectors*.
 <https://www.pangram.com/blog/all-about-false-positives-in-ai-detectors>.
 
 </div>
 
 <div id="ref-gptzero2026neurips" class="csl-entry">
 
-GPTZero. 2026. “GPTZero Finds 100 New Hallucinations in NeurIPS 2025
-Accepted Papers.” <https://gptzero.me/news/neurips/>.
+GPTZero. 2026. *GPTZero Finds 100 New Hallucinations in NeurIPS 2025
+Accepted Papers*. <https://gptzero.me/news/neurips/>.
 
 </div>
 
 <div id="ref-reviewer3" class="csl-entry">
 
-Reviewer3. n.d. “Reviewer3: Live arXiv Reference Checking.”
+Reviewer3. n.d. *Reviewer3: Live arXiv Reference Checking*.
 <https://reviewer3.com/live/arxiv>.
 
 </div>
@@ -326,7 +360,7 @@ Guide for Analysts with Python*. Crime De-Coder.
 
 <div id="ref-wheeler2026claude" class="csl-entry">
 
-Wheeler, Andrew P. 2026. “Using Claude Code to Help Me Write.”
+Wheeler, Andrew P. 2026. *Using Claude Code to Help Me Write*.
 <https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/>.
 
 </div>
@@ -334,8 +368,8 @@ Wheeler, Andrew P. 2026. “Using Claude Code to Help Me Write.”
 <div id="ref-zhao2026llmhallucinationswildlargescale" class="csl-entry">
 
 Zhao, Zhenyue, Yihe Wang, Toby Stuart, Mathijs De Vaan, Paul Ginsparg,
-and Yian Yin. 2026. “LLM Hallucinations in the Wild: Large-Scale
-Evidence from Non-Existent Citations.”
+and Yian Yin. 2026. *LLM Hallucinations in the Wild: Large-Scale
+Evidence from Non-Existent Citations*.
 <https://arxiv.org/abs/2605.07723>.
 
 </div>

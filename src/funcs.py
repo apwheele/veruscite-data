@@ -13,7 +13,9 @@ from src.metrics import (
     load_ground_truth,
 )
 
-V1_DIR = Path(__file__).resolve().parent.parent / "v1"
+# Public package ships as V1/ (capital V); accept either spelling on case-sensitive FS.
+_ROOT = Path(__file__).resolve().parent.parent
+V1_DIR = _ROOT / "V1" if (_ROOT / "V1").is_dir() else _ROOT / "v1"
 
 
 def ground_truth_summary() -> pd.DataFrame:
@@ -39,12 +41,26 @@ def ground_truth_totals() -> pd.Series:
 
 
 def extraction_table() -> pd.DataFrame:
-    """Formatted extraction results table."""
+    """Formatted extraction results table (accuracy + speed)."""
     df = extraction_report(V1_DIR)
     df["extraction_rate"] = (
         df["correctly_extracted"] / df["real_citations"] * 100
     ).round(1)
     df["cost_usd"] = df["cost_usd"].round(2)
+    if "wall_elapsed_seconds" in df.columns:
+        df["wall_min"] = (df["wall_elapsed_seconds"] / 60.0).round(1)
+    else:
+        df["wall_min"] = pd.NA
+    if "docs_per_minute" in df.columns:
+        df["docs_per_min"] = df["docs_per_minute"].round(1)
+    else:
+        df["docs_per_min"] = pd.NA
+    # Default model first (gemini-3.1-flash-lite), then by extraction rate desc.
+    df["_default"] = df["model"].eq("gemini-3.1-flash-lite").astype(int)
+    df = df.sort_values(
+        ["_default", "extraction_rate", "wall_min"],
+        ascending=[False, False, True],
+    ).reset_index(drop=True)
     cols = [
         "model",
         "ocr_backend",
@@ -53,6 +69,8 @@ def extraction_table() -> pd.DataFrame:
         "missing_citations",
         "hallucinated_citations",
         "extraction_rate",
+        "wall_min",
+        "docs_per_min",
         "cost_usd",
     ]
     out = df[cols].copy()
@@ -64,6 +82,8 @@ def extraction_table() -> pd.DataFrame:
         "Missing",
         "Extra",
         "Rate (%)",
+        "Wall (min)",
+        "Docs/min",
         "Cost (USD)",
     ]
     return out

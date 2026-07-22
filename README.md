@@ -11,12 +11,13 @@ veruscite-data/
 ├── src/                    # small Python helpers for the Quarto paper
 │   ├── metrics.py          # extraction_report(), checking_report(), load_ground_truth()
 │   └── match.py            # citation pairing used by extraction metrics
+├── report.qmd              # Quarto source for the public benchmark report
+├── report.md / report.pdf  # rendered outputs (`quarto render report.qmd`)
 └── V1/
     ├── pdfs/               # source PDFs
     ├── ground_truth.csv    # one concatenated label file (includes source_pdf)
     ├── extraction_run/     # model extraction outputs
     ├── checking_run/       # model checker outputs
-    ├── REPORT.md           # accuracy + speed summary (default model decision)
     └── manifest.json
 ```
 
@@ -43,7 +44,8 @@ based on the latest full-corpus V1 run (2026-07-22):
 | gpt-5.4-nano | 2,283 | 4 | 13 | ~8.5 min | ~$0.90 |
 
 Higher accuracy (fewer missing and hallucinated extras) and roughly **2× wall-clock speed**
-vs gpt-5.4-nano on the same 36-document corpus. See [V1/REPORT.md](V1/REPORT.md).
+vs gpt-5.4-nano on the same 36-document corpus. See the Quarto report
+([`report.qmd`](report.qmd) → [`report.pdf`](report.pdf) / [`report.md`](report.md)).
 
 ## Rebuild V1 from CiteCheck
 
@@ -56,28 +58,25 @@ cd ~/CiteCheck
 # DEST=/path/to/veruscite-data/V1 ./scripts/export_veruscite_v1.sh
 ```
 
-## Metrics for the paper (Quarto)
+## Metrics and report (Quarto)
+
+```bash
+pip install -r requirements.txt
+quarto render report.qmd    # writes report.md + report.pdf
+```
+
+Helpers used by the Quarto document:
 
 ```python
 from src.metrics import extraction_report, checking_report, load_ground_truth
 
 gt = load_ground_truth("V1")
-extraction_report("V1")   # one row per extraction run (includes wall time / docs per minute)
-checking_report("V1")     # one row per checker run
-```
-
-These reproduce the main accuracy tables from CiteCheck’s internal `validation.html`
-(extraction correct/missing/extra; checker FP rates and recall). Wire them into Quarto
-with pandas tables — no HTML report generator is shipped here.
-
-```bash
-pip install -r requirements.txt
-PYTHONPATH=. python -c "from src.metrics import extraction_report; print(extraction_report('V1'))"
+extraction_report("V1")   # includes wall time / docs per minute
+checking_report("V1")
 ```
 
 ## AI disclosure
 
-This public benchmark package and the V1 accuracy report were prepared with assistance from
-**Claude** (Anthropic) and **Grok 4.5** (xAI) for export scripting, report drafting, and
-repository maintenance. Ground-truth labels and final acceptance of model defaults were
-reviewed by the human author.
+See the **AI Use Disclosure** section in [`report.qmd`](report.qmd) / rendered report:
+drafting with **Claude** (Anthropic); 2026-07-22 extraction-default and speed updates with
+**Grok 4.5** (xAI). Ground-truth labels and final model-default decisions are human-reviewed.
