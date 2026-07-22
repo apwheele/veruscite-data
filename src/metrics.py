@@ -19,7 +19,7 @@ from typing import Any
 
 import pandas as pd
 
-from src.match import identity_key, norm_doi, pair_by_row_order, pair_citations
+from src.match import identity_key, identity_keys, norm_doi, pair_by_row_order, pair_citations
 
 # Hand labels (public CSV) and checker predictions map into four categories.
 STATUS_TO_CATEGORY = {
@@ -259,7 +259,7 @@ def _count_true_extra(
 
     for gi, oi, _score in pairing.pairs:
         for row in (ground_truth.iloc[gi], extracted.iloc[oi]):
-            matched_keys.add(identity_key(row))
+            matched_keys.update(identity_keys(row))
             doi = norm_doi(row.get("doi"))
             if doi:
                 matched_dois.add(doi)
@@ -268,16 +268,16 @@ def _count_true_extra(
     # extraction identity keys (title/DOI/raw), same idea as mark_duplicate_citations.
     seen_ext_keys: set[str] = set()
     for oi in range(len(extracted)):
-        key = identity_key(extracted.iloc[oi])
+        keys = set(identity_keys(extracted.iloc[oi]))
         if oi in matched_ext:
-            seen_ext_keys.add(key)
+            seen_ext_keys.update(keys)
 
     n_extra = 0
     for oi in unmatched:
         row = extracted.iloc[oi]
-        key = identity_key(row)
+        keys = set(identity_keys(row))
         doi = norm_doi(row.get("doi"))
-        if key in matched_keys or key in seen_ext_keys or (doi and doi in matched_dois):
+        if keys & matched_keys or keys & seen_ext_keys or (doi and doi in matched_dois):
             continue
         n_extra += 1
     return n_extra
@@ -310,6 +310,22 @@ def extraction_report(v1_dir: str | Path = "V1") -> pd.DataFrame:
             missing += len(pairing.unmatched_ground_truth)
             hallucinated += _count_true_extra(ext, gt, pairing)
 
+        totals = metadata.get("totals") or {}
+        wall = metadata.get("elapsed_seconds")
+        try:
+            wall_f = float(wall) if wall is not None else None
+        except (TypeError, ValueError):
+            wall_f = None
+        try:
+            extract_sec = totals.get("extract_seconds")
+            extract_f = float(extract_sec) if extract_sec is not None else None
+        except (TypeError, ValueError):
+            extract_f = None
+        docs_per_min = None
+        if wall_f and wall_f > 0:
+            n_docs = len(_run_csv_stems(run_dir))
+            docs_per_min = round(n_docs / (wall_f / 60.0), 2)
+
         rows.append(
             {
                 "model": model,
@@ -320,6 +336,9 @@ def extraction_report(v1_dir: str | Path = "V1") -> pd.DataFrame:
                 "correctly_extracted": correct,
                 "missing_citations": missing,
                 "hallucinated_citations": hallucinated,
+                "wall_elapsed_seconds": wall_f,
+                "extract_seconds": extract_f,
+                "docs_per_minute": docs_per_min,
                 "cost_usd": _cost_usd(metadata, run_dir),
                 "run_id": run_id,
             }
@@ -334,6 +353,9 @@ def extraction_report(v1_dir: str | Path = "V1") -> pd.DataFrame:
         "correctly_extracted",
         "missing_citations",
         "hallucinated_citations",
+        "wall_elapsed_seconds",
+        "extract_seconds",
+        "docs_per_minute",
         "cost_usd",
         "run_id",
     ]

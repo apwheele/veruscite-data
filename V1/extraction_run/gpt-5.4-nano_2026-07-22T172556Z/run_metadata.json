@@ -1,0 +1,57 @@
+{
+  "run_id": "gpt-5.4-nano_2026-07-22T172556Z",
+  "run_type": "extraction",
+  "provider": "openai",
+  "model": "gpt-5.4-nano",
+  "started_at": "2026-07-22T17:25:56.649270+00:00",
+  "completed_at": "2026-07-22T17:34:27.644725+00:00",
+  "elapsed_seconds": 511.0,
+  "doc_type": "academic",
+  "ocr_backend": "pypdfium2",
+  "liteparse_format": "",
+  "max_concurrent_documents": 5,
+  "extraction_threads_per_document": 3,
+  "document_count": 36,
+  "totals": {
+    "citation_count": 2300,
+    "input_tokens": 834349,
+    "output_tokens": 585431,
+    "total_tokens": 1419780,
+    "cost_usd": 0.898656,
+    "ocr_seconds": 29.19,
+    "extract_seconds": 2426.17
+  },
+  "prompts": {
+    "file": "prompts.json",
+    "git": {
+      "commit": "407c272719d869c6ac7a55d332143802c12b3b96",
+      "branch": "feature/extraction-citation-split",
+      "dirty": true,
+      "remote": "git@github.com:apwheele/CiteCheck.git",
+      "repo": "apwheele/CiteCheck",
+      "tree_url": "https://github.com/apwheele/CiteCheck/tree/407c272719d869c6ac7a55d332143802c12b3b96"
+    },
+    "items": [
+      {
+        "name": "academic_system_prompt",
+        "role": "extraction",
+        "source_file": "python/services/citation_extractor.py",
+        "line_start": 57,
+        "line_end": 104,
+        "sha256": "efd5c692e4244863efdb71598f476d61a4afebe7f844a6c242fc14ab537b3bee",
+        "char_count": 9182,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/407c272719d869c6ac7a55d332143802c12b3b96/python/services/citation_extractor.py#L57-L104"
+      },
+      {
+        "name": "reference_check_prompt",
+        "role": "extraction",
+        "source_file": "python/services/citation_extractor.py",
+        "line_start": 118,
+        "line_end": 121,
+        "sha256": "1f504ee26bdbd24911f51c705b10469d9d071cef5d28c105fe587cd518f7c70f",
+        "char_count": 420,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/407c272719d869c6ac7a55d332143802c12b3b96/python/services/citation_extractor.py#L118-L121"
+      }
+    ]
+  }
+}

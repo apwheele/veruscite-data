@@ -1,16 +1,22 @@
 {
   "version": "V1",
-  "created_at": "2026-07-20T17:33:47.708246+00:00",
+  "created_at": "2026-07-22T17:54:47.878872+00:00",
   "pdf_count": 36,
   "ground_truth": "ground_truth.csv",
   "extraction_runs": [
-    "gemini-3.1-flash-lite_2026-07-16T194622Z",
-    "gpt-5.4-nano_2026-07-16T190702Z"
+    "gemini-3.1-flash-lite_2026-07-22T173751Z",
+    "gpt-5.4-nano_2026-07-22T172556Z"
   ],
   "checking_runs": [
+    "gemini-3.5-flash-lite_2026-07-21T153319Z",
+    "google__gemini-3-flash-preview_2026-07-15T153203Z",
     "google__gemini-3-flash-preview_2026-07-19T170129Z",
     "google__gemini-3.1-flash-lite_2026-07-19T202133Z",
+    "gpt-5.4-mini_2026-07-18T185905Z",
     "gpt-5.4-mini_2026-07-19T173547Z",
     "gpt-5.4-nano_2026-07-19T204102Z"
-  ]
+  ],
+  "default_extraction_model": "gemini-3.1-flash-lite",
+  "default_extraction_run_id": "gemini-3.1-flash-lite_2026-07-22T173751Z",
+  "notes": "Default extraction model is gemini-3.1-flash-lite for higher accuracy and wall-clock speed vs gpt-5.4-nano on the V1 corpus (2026-07-22 runs)."
 }

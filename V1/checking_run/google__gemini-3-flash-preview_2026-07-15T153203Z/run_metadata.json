@@ -1,0 +1,67 @@
+{
+  "run_id": "google__gemini-3-flash-preview_2026-07-15T153203Z",
+  "run_type": "checking",
+  "provider": "perplexity",
+  "model": "google/gemini-3-flash-preview",
+  "citation_source": "ground_truth",
+  "started_at": "2026-07-15T15:32:03.276736+00:00",
+  "completed_at": "2026-07-15T16:06:54.748203+00:00",
+  "elapsed_seconds": 2091.47,
+  "max_concurrent_journal": 30,
+  "max_concurrent_other": 10,
+  "max_concurrent_documents": 5,
+  "document_count": 36,
+  "totals": {
+    "citation_count": 2287,
+    "verified": 2003,
+    "not_found": 64,
+    "minor_error": 107,
+    "hallucination": 113,
+    "uncertain": 0,
+    "possible_hallucination": 0,
+    "input_tokens": 25577558,
+    "output_tokens": 867308,
+    "total_tokens": 26444866,
+    "web_search_calls": 847,
+    "token_cost_usd": 15.533434,
+    "web_search_cost_usd": 4.335,
+    "cost_usd": 19.868533,
+    "total_citation_latency_seconds": 144387.15,
+    "max_seconds_per_citation": 380.3,
+    "avg_seconds_per_citation": 63.13,
+    "citations_per_minute": 65.61
+  },
+  "prompts": {
+    "file": "prompts.json",
+    "git": {
+      "commit": "22514f181f530b6baf09eb0e0e7a51262c587679",
+      "branch": "feature/gt-reclassify-verified-citations",
+      "dirty": true,
+      "remote": "git@github.com:apwheele/CiteCheck.git",
+      "repo": "apwheele/CiteCheck",
+      "tree_url": "https://github.com/apwheele/CiteCheck/tree/22514f181f530b6baf09eb0e0e7a51262c587679"
+    },
+    "items": [
+      {
+        "name": "web_checker_instruction",
+        "role": "checking",
+        "source_file": "python/services/citation_checker.py",
+        "line_start": 290,
+        "line_end": 319,
+        "sha256": "c0f65d61121f27b20878954535167c1160bd5e01d1d70d8aca730907733a0fed",
+        "char_count": 44959,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/22514f181f530b6baf09eb0e0e7a51262c587679/python/services/citation_checker.py#L290-L319"
+      },
+      {
+        "name": "struct_instruction",
+        "role": "checking",
+        "source_file": "python/services/citation_checker.py",
+        "line_start": 321,
+        "line_end": 330,
+        "sha256": "d615c5f18aaaf94da4a443a2453984a1af9d55665d3c13bdd07ed2fa15d8ee4b",
+        "char_count": 10264,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/22514f181f530b6baf09eb0e0e7a51262c587679/python/services/citation_checker.py#L321-L330"
+      }
+    ]
+  }
+}

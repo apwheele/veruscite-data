@@ -289,14 +289,36 @@ def pair_by_row_order(
     )
 
 
-def identity_key(row: pd.Series | dict[str, Any]) -> str:
-    """Stable key for stripping duplicate extraction rows against matched GT."""
+def _author_surnames_fingerprint(authors: list[str]) -> str:
+    """Surname-level tokens so middle-initial OCR variants still match."""
+    tokens: list[str] = []
+    for author in authors:
+        parts = normalize_string(author).split()
+        multi = [p for p in parts if len(p) > 1]
+        if multi:
+            tokens.append(multi[-1])
+        elif parts:
+            tokens.append(parts[-1])
+    return "|".join(tokens)
+
+
+def identity_keys(row: pd.Series | dict[str, Any]) -> list[str]:
+    """All identity keys for a citation (DOI, title+surnames, raw prefix)."""
+    keys: list[str] = []
     doi = norm_doi(_row_value(row, "doi"))
     if doi:
-        return f"doi:{doi}"
+        keys.append(f"doi:{doi}")
     title = normalize_string(_row_value(row, "title"))
-    authors = normalize_string(" ".join(_authors_list(_row_value(row, "authors"))))
+    authors_fp = _author_surnames_fingerprint(_authors_list(_row_value(row, "authors")))
     if title:
-        return f"title:{title}|authors:{authors}"
+        keys.append(f"title:{title}|authors:{authors_fp}")
+    if keys:
+        return keys
     raw = normalize_string(_row_value(row, "raw_text"))
-    return f"raw:{raw[:160]}" if raw else "meta:::"
+    return [f"raw:{raw[:160]}"] if raw else ["meta:::"]
+
+
+def identity_key(row: pd.Series | dict[str, Any]) -> str:
+    """Primary stable key for stripping duplicate extraction rows against matched GT."""
+    keys = identity_keys(row)
+    return keys[0] if keys else "meta:::"
