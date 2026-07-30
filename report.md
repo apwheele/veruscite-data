@@ -120,15 +120,16 @@ Verification proceeds in two passes:
     tools) to locate evidence of the publication.
 
 The primary checker configurations reported here are **Perplexity**
-(hosting Gemini 3.1 Flash Lite), **direct Google Gemini 3.5 Flash
-Lite**, and **OpenAI GPT-5.4-nano** (with web search). Having multiple
-providers is important operationally – any single provider experiences
-periodic outages or rate limits. Results reported here represent the
-range across these configurations.
+(hosting Gemini 3.1 Flash Lite and OpenAI GPT-5.4-nano), **direct Google
+Gemini 3.5 Flash Lite**, and **OpenAI** direct (`gpt-5.4-nano` and
+`gpt-5.6-luna`, with web search). Having multiple providers is important
+operationally – any single provider experiences periodic outages or rate
+limits. Results reported here represent the range across these
+configurations.
 
 Cost is kept low by using smaller models with web search rather than
 large frontier models. A full corpus check (36 papers, ~2,288 citations)
-runs between roughly **\$0.40–\$0.65 per paper** depending on the model.
+runs between roughly **\$0.35–\$0.65 per paper** depending on the model.
 
 ## Ground Truth
 
@@ -167,6 +168,7 @@ execution_count="3">
 |:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|
 | gemini-3.1-flash-lite | pypdfium2 | 2288 | 2285 | 3 | 3 | 99.9 | 4.9 | 7.4 | 1.15 |
 | gpt-5.4-nano | pypdfium2 | 2288 | 2285 | 3 | 4 | 99.9 | 12.2 | 3 | 0.88 |
+| gpt-5.6-luna | pypdfium2 | 2288 | 2284 | 4 | 6 | 99.8 | 8.2 | 4.4 | 0.84 |
 
 </div>
 
@@ -187,7 +189,9 @@ extraction uses `pypdfium2`, with link-annotation DOI repair so LaTeX
 rule-drawn underscores in DOIs are recovered from hyperlink targets when
 the selectable text layer has spaces.
 
-`gpt-5.4-nano` is retained as a comparison baseline.
+`gpt-5.4-nano` and `gpt-5.6-luna` are retained as OpenAI comparison
+baselines (luna is slightly cheaper and faster wall-clock than nano
+here, with a few more missing/extra citations).
 
 ## Checker Results
 
@@ -202,8 +206,9 @@ execution_count="5">
 |:---|:---|:---|:---|:---|:---|---:|---:|
 | gemini-3.5-flash-lite | gemini | 0.1% (2) | 0.8% (15) | 63.1% (89/141) | 71.9% (286/398) | 1308 | 14.59 |
 | google/gemini-3.1-flash-lite | perplexity | 0.4% (7) | 0.7% (13) | 69.5% (98/141) | 82.7% (329/398) | 1310 | 19.87 |
-| gpt-5.4-nano | openai | 0.2% (3) | 2.8% (53) | 54.6% (77/141) | 87.7% (349/398) | 1308 | 23.33 |
 | gpt-5.4-nano | openai | 0.2% (3) | 2.2% (42) | 60.3% (85/141) | 88.4% (352/398) | 1309 | 23.45 |
+| gpt-5.6-luna | openai | 0.2% (3) | 2.5% (47) | 74.5% (105/141) | 88.7% (353/398) | 1310 | 18.33 |
+| openai/gpt-5.4-nano | perplexity | 0.4% (7) | 2.5% (47) | 33.3% (47/141) | 84.9% (338/398) | 1310 | 12.18 |
 
 </div>
 
@@ -216,11 +221,10 @@ Key metrics:
   below **0.4%**.
 - **Not-Verified Recall**: Percentage of actual problems
   (hallucinations + minor errors + not-found) correctly identified.
-  Ranges from about **72–88%** across the kept runs.
+  Ranges from about **72–89%** across the kept runs.
 - **Hallucination Recall**: Percentage of actual hallucinations
-  correctly flagged. The best configuration here
-  (**google/gemini-3.1-flash-lite** via **perplexity**) achieves about
-  **69.5%**.
+  correctly flagged. The best configuration here (**gpt-5.6-luna** via
+  **openai**) achieves about **74.5%**.
 
 ### Cost Breakdown
 
@@ -235,24 +239,27 @@ execution_count="7">
 |:---|:---|---:|---:|---:|---:|
 | gemini-3.5-flash-lite | gemini | 6.14 | 8.44 | 14.59 | 0.41 |
 | google/gemini-3.1-flash-lite | perplexity | 12.15 | 7.72 | 19.87 | 0.55 |
-| gpt-5.4-nano | openai | 7.26 | 16.07 | 23.33 | 0.65 |
 | gpt-5.4-nano | openai | 7.17 | 16.28 | 23.45 | 0.65 |
+| gpt-5.6-luna | openai | 6.84 | 11.49 | 18.33 | 0.51 |
+| openai/gpt-5.4-nano | perplexity | 7.34 | 4.84 | 12.18 | 0.34 |
 
 </div>
 
 </div>
 
-Full-corpus checker cost ranges from about **\$14.59–\$23.45**
-(~\$0.41–\$0.65 per paper). The cheapest kept configuration is
-**gemini-3.5-flash-lite** (gemini) at ~\$0.41 per paper.
+Full-corpus checker cost ranges from about **\$12.18–\$23.45**
+(~\$0.34–\$0.65 per paper). The cheapest kept configuration is
+**openai/gpt-5.4-nano** (perplexity) at ~\$0.34 per paper.
 Perplexity-hosted Gemini 3.1 Flash Lite sits in the middle on cost while
 offering strong not-verified and hallucination recall; OpenAI
-`gpt-5.4-nano` is more expensive (more web searches) and more aggressive
-on minor-error recall, at a higher verified false-positive rate.
+`gpt-5.6-luna` improves hallucination recall versus `gpt-5.4-nano` at a
+similar verified false-positive rate and mid-range cost; OpenAI
+`gpt-5.4-nano` remains the most expensive kept run (more web searches)
+with strong not-verified recall.
 
 ### CrossRef as First Pass
 
-Across the kept checker runs, about **1308** citations are confirmed via
+Across the kept checker runs, about **1310** citations are confirmed via
 static CrossRef lookup alone (no web search needed) – on the order of
 two-thirds of verified citations – which keeps per-citation expenses low
 and latency down.
@@ -296,9 +303,10 @@ The `V1/` directory contains:
 
 - `ground_truth.csv` – hand-labeled citations with `expected_status`
 - `extraction_run/` – raw extraction outputs per model (kept: Gemini 3.1
-  Flash Lite + gpt-5.4-nano, **2026-07-30**)
+  Flash Lite, gpt-5.4-nano, gpt-5.6-luna, **2026-07-30**)
 - `checking_run/` – raw checker outputs per model (Perplexity Gemini 3.1
-  Flash Lite, direct Gemini 3.5 Flash Lite, OpenAI gpt-5.4-nano)
+  Flash Lite, Perplexity openai/gpt-5.4-nano, direct Gemini 3.5 Flash
+  Lite, OpenAI gpt-5.4-nano, OpenAI gpt-5.6-luna)
 - `manifest.json` – run IDs used in this report
   (`default_extraction_model`: `gemini-3.1-flash-lite`)
 
@@ -315,9 +323,10 @@ This paper was prepared with AI assistance. Drafting and earlier
 iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works
 by Andrew Wheeler (see A. P. Wheeler (2026) for that workflow). Updates
 for the 2026-07-30 extraction and checker refresh (including DOI
-link-annotation recovery notes), speed/cost metrics, and this disclosure
-were assisted by **Grok 4.5** (xAI). Ground-truth labels, model-default
-decisions, and final review are human.
+link-annotation recovery notes, `gpt-5.6-luna` extract/check runs, and
+Perplexity `openai/gpt-5.4-nano`), speed/cost metrics, and this
+disclosure were assisted by **Grok 4.5** (xAI). Ground-truth labels,
+model-default decisions, and final review are human.
 
 ## References
 
