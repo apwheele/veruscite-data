@@ -1,22 +1,19 @@
 {
   "version": "V1",
-  "created_at": "2026-07-22T17:54:47.878872+00:00",
+  "created_at": "2026-07-30T17:42:26.478274+00:00",
   "pdf_count": 36,
   "ground_truth": "ground_truth.csv",
   "extraction_runs": [
-    "gemini-3.1-flash-lite_2026-07-22T173751Z",
-    "gpt-5.4-nano_2026-07-22T172556Z"
+    "gemini-3.1-flash-lite_2026-07-30T172348Z",
+    "gpt-5.4-nano_2026-07-30T172348Z"
   ],
   "checking_runs": [
-    "gemini-3.5-flash-lite_2026-07-21T153319Z",
-    "google__gemini-3-flash-preview_2026-07-15T153203Z",
-    "google__gemini-3-flash-preview_2026-07-19T170129Z",
-    "google__gemini-3.1-flash-lite_2026-07-19T202133Z",
-    "gpt-5.4-mini_2026-07-18T185905Z",
-    "gpt-5.4-mini_2026-07-19T173547Z",
-    "gpt-5.4-nano_2026-07-19T204102Z"
+    "gemini-3.5-flash-lite_2026-07-29T175547Z",
+    "google__gemini-3.1-flash-lite_2026-07-30T162218Z",
+    "gpt-5.4-nano_2026-07-29T175547Z",
+    "gpt-5.4-nano_2026-07-30T162218Z"
   ],
   "default_extraction_model": "gemini-3.1-flash-lite",
-  "default_extraction_run_id": "gemini-3.1-flash-lite_2026-07-22T173751Z",
-  "notes": "Default extraction model is gemini-3.1-flash-lite for higher accuracy and wall-clock speed vs gpt-5.4-nano on the V1 corpus (2026-07-22 runs)."
+  "default_extraction_run_id": "gemini-3.1-flash-lite_2026-07-30T172348Z",
+  "notes": "Extraction runs 2026-07-30 (link-annotation DOI repair + pypdfium2). Checking: Gemini 3.5 flash-lite (direct, 2026-07-29), Perplexity google/gemini-3.1-flash-lite and OpenAI gpt-5.4-nano (2026-07-29/30)."
 }

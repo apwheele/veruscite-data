@@ -1,0 +1,57 @@
+{
+  "run_id": "gpt-5.4-nano_2026-07-30T172348Z",
+  "run_type": "extraction",
+  "provider": "openai",
+  "model": "gpt-5.4-nano",
+  "started_at": "2026-07-30T17:23:48.361416+00:00",
+  "completed_at": "2026-07-30T17:36:01.367098+00:00",
+  "elapsed_seconds": 733.01,
+  "doc_type": "academic",
+  "ocr_backend": "pypdfium2",
+  "liteparse_format": "",
+  "max_concurrent_documents": 5,
+  "extraction_threads_per_document": 3,
+  "document_count": 36,
+  "totals": {
+    "citation_count": 2294,
+    "input_tokens": 804027,
+    "output_tokens": 578808,
+    "total_tokens": 1382835,
+    "cost_usd": 0.884315,
+    "ocr_seconds": 44.04,
+    "extract_seconds": 2775.11
+  },
+  "prompts": {
+    "file": "prompts.json",
+    "git": {
+      "commit": "2da968623aa43dd9d29d71e99ebdbfecba9240db",
+      "branch": "feature/extraction-doi-underscores",
+      "dirty": true,
+      "remote": "git@github.com:apwheele/CiteCheck.git",
+      "repo": "apwheele/CiteCheck",
+      "tree_url": "https://github.com/apwheele/CiteCheck/tree/2da968623aa43dd9d29d71e99ebdbfecba9240db"
+    },
+    "items": [
+      {
+        "name": "academic_system_prompt",
+        "role": "extraction",
+        "source_file": "python/services/citation_extractor.py",
+        "line_start": 57,
+        "line_end": 104,
+        "sha256": "86fe8e5cac16d7af3de59ae486f9ec647c020bcd662da65d10d797de3ee165b8",
+        "char_count": 9592,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/2da968623aa43dd9d29d71e99ebdbfecba9240db/python/services/citation_extractor.py#L57-L104"
+      },
+      {
+        "name": "reference_check_prompt",
+        "role": "extraction",
+        "source_file": "python/services/citation_extractor.py",
+        "line_start": 118,
+        "line_end": 121,
+        "sha256": "1f504ee26bdbd24911f51c705b10469d9d071cef5d28c105fe587cd518f7c70f",
+        "char_count": 420,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/2da968623aa43dd9d29d71e99ebdbfecba9240db/python/services/citation_extractor.py#L118-L121"
+      }
+    ]
+  }
+}

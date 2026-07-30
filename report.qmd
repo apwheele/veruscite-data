@@ -1,7 +1,7 @@
 ---
 title: "VerusCite V1 Benchmark: Citation Verification Accuracy"
 author: "Andrew Wheeler"
-date: "2026-07-22"
+date: "2026-07-30"
 format:
   pdf:
     toc: true
@@ -87,9 +87,9 @@ Verification proceeds in two passes:
 1. **Static CrossRef lookup** -- A title/DOI search against CrossRef metadata. Fast and free. Confirms roughly 60% of legitimate citations without needing web search.
 2. **Web search verification** -- Citations not resolved by CrossRef are sent to a web-search-enabled LLM (Perplexity or OpenAI web search tools) to locate evidence of the publication.
 
-The primary models used are **Perplexity** (hosting Gemini Flash Lite or Gemini 3 Flash) and **OpenAI GPT-5.4-mini/nano** as fallback. Having multiple providers is important operationally -- any single provider experiences periodic outages or rate limits. Results reported here represent the range across these configurations.
+The primary checker configurations reported here are **Perplexity** (hosting Gemini 3.1 Flash Lite), **direct Google Gemini 3.5 Flash Lite**, and **OpenAI GPT-5.4-nano** (with web search). Having multiple providers is important operationally -- any single provider experiences periodic outages or rate limits. Results reported here represent the range across these configurations.
 
-Cost is kept low by using smaller models with web search rather than large frontier models. A full corpus check (36 papers, 2,200+ citations) runs between $0.41-$1.20 per paper depending on the model.
+Cost is kept low by using smaller models with web search rather than large frontier models. A full corpus check (36 papers, ~2,288 citations) runs between roughly **$0.40–$0.65 per paper** depending on the model.
 
 ## Ground Truth
 
@@ -116,7 +116,7 @@ Of the `{python} n_citations` citations, `{python} n_verified` (`{python} f"{100
 
 ## Extraction Results
 
-Citation extraction uses an LLM to parse the document text and identify individual references. The table below shows extraction accuracy **and wall-clock speed** against the ground truth (latest kept runs, 2026-07-22).
+Citation extraction uses an LLM to parse the document text and identify individual references. The table below shows extraction accuracy **and wall-clock speed** against the ground truth (latest kept runs, **2026-07-30**).
 
 ```{python}
 #| label: tbl-extraction
@@ -135,13 +135,15 @@ default_rate = 100.0 * float(default_row["correctly_extracted"]) / float(default
 default_wall_min = float(default_row["wall_elapsed_seconds"]) / 60.0
 _dpm = default_row["docs_per_minute"]
 default_dpm = float(_dpm) if pd.notna(_dpm) else float("nan")
+nano_wall_min = float(nano_row["wall_elapsed_seconds"]) / 60.0 if nano_row is not None else float("nan")
+speedup = (nano_wall_min / default_wall_min) if (nano_row is not None and default_wall_min > 0) else float("nan")
 ```
 
-Extraction is very accurate across models. **Gemini 3.1 Flash Lite is the default production extraction model**: it correctly extracts about **`{python} f"{default_rate:.2f}"`%** of citations (highest correct count, fewest missing/extra among the kept runs) and finishes the full 36-document corpus in about **`{python} f"{default_wall_min:.1f}"` minutes** wall time (~`{python} f"{default_dpm:.1f}"` docs/min), roughly twice as fast as `gpt-5.4-nano` on the same batch. Cost remains on the order of a few cents per paper for the full corpus.
+Extraction is very accurate across models. **Gemini 3.1 Flash Lite is the default production extraction model**: it correctly extracts about **`{python} f"{default_rate:.2f}"`%** of citations (matching `gpt-5.4-nano` on correct count, with fewer extras) and finishes the full 36-document corpus in about **`{python} f"{default_wall_min:.1f}"` minutes** wall time (~`{python} f"{default_dpm:.1f}"` docs/min), roughly **`{python} f"{speedup:.1f}"`×** as fast as `gpt-5.4-nano` on the same batch. Cost remains on the order of a few cents per paper for the full corpus.
 
-The few "extra" rows that remain are typically table fragments or rare non-bibliography lines the model still surfaces; numbered discursive footnotes and author bios are filtered in the current pipeline.
+The few "extra" rows that remain are typically table fragments or rare non-bibliography lines the model still surfaces; numbered discursive footnotes and author bios are filtered in the current pipeline. PDF text extraction uses `pypdfium2`, with link-annotation DOI repair so LaTeX rule-drawn underscores in DOIs are recovered from hyperlink targets when the selectable text layer has spaces.
 
-`gpt-5.4-nano` is retained as a comparison baseline. Both runs use `pypdfium2` for PDF text extraction.
+`gpt-5.4-nano` is retained as a comparison baseline.
 
 ## Checker Results
 
@@ -151,11 +153,35 @@ The few "extra" rows that remain are typically table fragments or rare non-bibli
 md_table(checking_table())
 ```
 
+```{python}
+#| output: false
+chk = checking_report(V1)
+# Parse percentage strings like "0.4% (7)" / "69.5% (98/141)"
+def _pct(series):
+    return series.astype(str).str.extract(r"([\d.]+)%", expand=False).astype(float)
+
+fp_hall_max = float(_pct(chk["verified_fp_hallucination"]).max())
+nv_recall_min = float(_pct(chk["not_verified_recall"]).min())
+nv_recall_max = float(_pct(chk["not_verified_recall"]).max())
+hall_recall_max = float(_pct(chk["hallucination_recall"]).max())
+best_hall_idx = _pct(chk["hallucination_recall"]).idxmax()
+best_hall_model = str(chk.loc[best_hall_idx, "model"])
+best_hall_provider = str(chk.loc[best_hall_idx, "provider"])
+crossref_med = int(chk["verified_via_crossref"].median())
+cost_min = float(chk["cost_usd"].min())
+cost_max = float(chk["cost_usd"].max())
+cost_per_min = cost_min / 36.0
+cost_per_max = cost_max / 36.0
+cheapest_idx = chk["cost_usd"].idxmin()
+cheapest_model = str(chk.loc[cheapest_idx, "model"])
+cheapest_provider = str(chk.loc[cheapest_idx, "provider"])
+```
+
 Key metrics:
 
-- **FP → Hallucination**: Percentage of actually-verified citations incorrectly flagged as hallucinations. All configurations stay at or below 0.4%.
-- **Not-Verified Recall**: Percentage of actual problems (hallucinations + minor errors + not-found) correctly identified. Ranges from 72-82%.
-- **Hallucination Recall**: Percentage of actual hallucinations correctly flagged. The best configuration (Gemini 3 Flash via Perplexity) achieves 73.6%.
+- **FP → Hallucination**: Percentage of actually-verified citations incorrectly flagged as hallucinations. All configurations stay at or below **`{python} f"{fp_hall_max:.1f}"`%**.
+- **Not-Verified Recall**: Percentage of actual problems (hallucinations + minor errors + not-found) correctly identified. Ranges from about **`{python} f"{nv_recall_min:.0f}"`–`{python} f"{nv_recall_max:.0f}"`%** across the kept runs.
+- **Hallucination Recall**: Percentage of actual hallucinations correctly flagged. The best configuration here (**`{python} best_hall_model`** via **`{python} best_hall_provider`**) achieves about **`{python} f"{hall_recall_max:.1f}"`%**.
 
 ### Cost Breakdown
 
@@ -167,11 +193,11 @@ costs["Per Paper (USD)"] = (costs["Total (USD)"] / 36).round(2)
 md_table(costs)
 ```
 
-Perplexity-hosted models are substantially cheaper than direct OpenAI for equivalent or better accuracy. The Gemini 3.1 Flash Lite configuration provides the best cost/accuracy ratio at ~$0.41 per paper.
+Full-corpus checker cost ranges from about **$`{python} f"{cost_min:.2f}"`–$`{python} f"{cost_max:.2f}"`** (~$`{python} f"{cost_per_min:.2f}"`–$`{python} f"{cost_per_max:.2f}"` per paper). The cheapest kept configuration is **`{python} cheapest_model`** (`{python} cheapest_provider`) at ~$`{python} f"{cost_per_min:.2f}"` per paper. Perplexity-hosted Gemini 3.1 Flash Lite sits in the middle on cost while offering strong not-verified and hallucination recall; OpenAI `gpt-5.4-nano` is more expensive (more web searches) and more aggressive on minor-error recall, at a higher verified false-positive rate.
 
 ### CrossRef as First Pass
 
-Across all checker runs, approximately **1,331** of ~1,946 verified citations are confirmed via static CrossRef lookup alone (no web search needed). This is roughly 68% of verified citations resolved without any LLM cost, which keeps per-citation expenses low and latency down.
+Across the kept checker runs, about **`{python} crossref_med`** citations are confirmed via static CrossRef lookup alone (no web search needed) -- on the order of two-thirds of verified citations -- which keeps per-citation expenses low and latency down.
 
 ## Privacy
 
@@ -194,8 +220,8 @@ Known limitations of the current evaluation:
 All data for this report is public at [github.com/apwheele/veruscite-data](https://github.com/apwheele/veruscite-data). The `V1/` directory contains:
 
 - `ground_truth.csv` -- hand-labeled citations with `expected_status`
-- `extraction_run/` -- raw extraction outputs per model (kept: Gemini 3.1 Flash Lite + gpt-5.4-nano, 2026-07-22)
-- `checking_run/` -- raw checker outputs per model
+- `extraction_run/` -- raw extraction outputs per model (kept: Gemini 3.1 Flash Lite + gpt-5.4-nano, **2026-07-30**)
+- `checking_run/` -- raw checker outputs per model (Perplexity Gemini 3.1 Flash Lite, direct Gemini 3.5 Flash Lite, OpenAI gpt-5.4-nano)
 - `manifest.json` -- run IDs used in this report (`default_extraction_model`: `gemini-3.1-flash-lite`)
 
 To regenerate this report:
@@ -207,6 +233,6 @@ quarto render report.qmd
 
 ## AI Use Disclosure
 
-This paper was prepared with AI assistance. Drafting and earlier iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works by Andrew Wheeler (see @wheeler2026claude for that workflow). Updates for the 2026-07-22 extraction default (Gemini 3.1 Flash Lite), speed metrics, and this disclosure were assisted by **Grok 4.5** (xAI). Ground-truth labels, model-default decisions, and final review are human.
+This paper was prepared with AI assistance. Drafting and earlier iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works by Andrew Wheeler (see @wheeler2026claude for that workflow). Updates for the 2026-07-30 extraction and checker refresh (including DOI link-annotation recovery notes), speed/cost metrics, and this disclosure were assisted by **Grok 4.5** (xAI). Ground-truth labels, model-default decisions, and final review are human.
 
 ## References

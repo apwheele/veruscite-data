@@ -1,0 +1,37 @@
+document,page_count,text_length,citation_count,ocr_seconds,extract_seconds,input_tokens,output_tokens,total_tokens,cost_usd
+13335_Efficient_semantic_uncer,30,98871,73,0.82,39.6,40176,30624,70800,0.05598
+1_perspective_PLOSWater_preview,11,45060,67,2.11,32.28,23888,23943,47831,0.041887
+23812_Unmasking_Puppeteers_Lev,16,54301,72,16.58,24.67,32046,25351,57397,0.046038
+24047_Fourier_Token_Merging_Un,22,68399,32,1.39,17.91,14178,9711,23889,0.018111
+2606.11534v1_Urban_Heat_MiniCubes_An_AI-Ready_dataset_for_urban_heat_rese,53,107870,104,16.13,41.05,42551,40885,83436,0.071965
+2606.11558v1_Measurable_matchings_in_unbalanced_graphs,68,233788,156,1.47,49.51,31069,34864,65933,0.060063
+2606.11565v1,27,56658,40,0.32,14.66,14064,10752,24816,0.019644
+2606.12165v1_Pricing_mobility_services_under_decision-dependent_demand_un,42,102723,36,1.33,12.31,8381,9070,17451,0.0157
+2606.12167v1_Shared_Infrastructure_Investment_and_Pricing_Stackelberg_Equ,99,147798,75,1.64,43.16,15321,15909,31230,0.027694
+2606.12170v1_A_Stochastic_Framework_for_the_Spherical_Jeans_Equation_Moti,24,45045,35,0.33,34.58,17861,5569,23430,0.012819
+2606.12264v1_The_Confined_beta-Soft_rotor_model_in_rare-earth_nuclei,51,80625,78,0.91,34.92,53424,31341,84765,0.060367
+2606.12308v1_Laser-Liquid_Interaction_in_Laser-Induced_Forward_Transfer_(,22,73163,76,0.37,25.31,27026,24748,51774,0.043879
+2606.12619v1_Constraining_the_Low-p_T_ηπ^0_Ratio_for_Direct-Photon_Analys,10,38034,32,0.41,18.25,18222,6521,24743,0.014337
+2606.12627v1_Two_pathways_to_diapycnal_mixing_in_strongly_stratified_flow,35,97365,52,0.7,25.5,11208,11801,23009,0.020504
+2606.12634v1_Keep_Policy_Gradient_in_Charge_Sibling-Guided_Credit_Distill,13,46208,23,0.26,10.86,10649,5530,16179,0.010957
+"2606.12652v1_A_mean_field_approach_to_multiple,_long-delayed_systems",6,27443,31,0.25,13.51,6862,5957,12819,0.010651
+AndyW_Dissertation_Limit,50,68507,271,0.35,174.92,60886,66150,127036,0.114446
+BD_money_in_bank_preprint,17,80365,85,0.39,100.4,13048,17087,30135,0.028893
+Cannabis_in_the_Capital__Manuscript,23,40519,52,0.21,54.19,11954,10883,22837,0.019313
+Domestic Politics in 2025_ South Korea's Polarized Democracy After Martial Law,21,50485,24,0.3,17.29,3747,3745,7492,0.006554
+Fingerprint_Ridges,34,98423,38,1.42,22.84,14740,13062,27802,0.023278
+GenAI_CrimEvidence,14,29961,33,0.3,44.4,10705,5831,16536,0.011423
+Gunshot_Detection_Literature_Review_Expanded,2,4345,12,0.03,5.06,3203,1925,5128,0.003688
+PredictionMarkets,30,80792,48,0.5,11.68,4313,4864,9177,0.008374
+Preprint - The AI Criminal Mastermind - Paper,22,86045,86,0.59,47.33,25996,23238,49234,0.041356
+Reimagining-justice-peacemaking-criminology-and-alternative-justice-systems-in-the-Kenyan-context,14,47410,32,0.28,90.43,4214,4671,8885,0.00806
+affiliation_errors_openalex,20,61837,34,0.47,16.11,8550,9780,18330,0.016807
+algorithms-19-00509,30,90752,52,0.68,16.81,20765,15864,36629,0.028987
+hall_next_research,10,54280,84,0.39,74.5,22195,20570,42765,0.036404
+journal.pone.0325168,53,148270,116,2.63,68.29,39310,39024,78334,0.068364
+journal.pone.0334595,27,91496,43,2.18,17.2,18496,15721,34217,0.028206
+journal.pone.0345850,33,114159,90,1.24,36.6,30669,31394,62063,0.054758
+journal.pone.0349889,22,94469,91,0.91,43.82,34860,31966,66826,0.056664
+journal.pone.0352338,17,67984,43,0.52,19.56,19370,18178,37548,0.032109
+preprint-61779311834433-61779357373981,41,106335,42,0.69,27.32,10706,9916,20622,0.017551
+s12889-026-27943-8_reference,23,50760,34,0.36,20.41,30199,6281,36480,0.016971

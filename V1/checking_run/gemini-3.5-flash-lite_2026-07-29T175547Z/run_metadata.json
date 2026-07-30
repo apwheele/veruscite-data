@@ -1,0 +1,67 @@
+{
+  "run_id": "gemini-3.5-flash-lite_2026-07-29T175547Z",
+  "run_type": "checking",
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "citation_source": "ground_truth",
+  "started_at": "2026-07-29T17:55:47.580332+00:00",
+  "completed_at": "2026-07-29T18:11:29.890976+00:00",
+  "elapsed_seconds": 942.31,
+  "max_concurrent_journal": 30,
+  "max_concurrent_other": 10,
+  "max_concurrent_documents": 5,
+  "document_count": 36,
+  "totals": {
+    "citation_count": 2288,
+    "verified": 1980,
+    "not_found": 74,
+    "minor_error": 141,
+    "hallucination": 93,
+    "uncertain": 0,
+    "possible_hallucination": 0,
+    "input_tokens": 16322271,
+    "output_tokens": 491154,
+    "total_tokens": 16813425,
+    "web_search_calls": 604,
+    "token_cost_usd": 6.144713,
+    "web_search_cost_usd": 8.444,
+    "cost_usd": 14.588729,
+    "total_citation_latency_seconds": 73601.86,
+    "max_seconds_per_citation": 269.3,
+    "avg_seconds_per_citation": 32.17,
+    "citations_per_minute": 145.68
+  },
+  "prompts": {
+    "file": "prompts.json",
+    "git": {
+      "commit": "ae933d5e5b4097fe5339d4daf8a1022b5d7d0a24",
+      "branch": "feature/unpublished-manuscript-unfound",
+      "dirty": true,
+      "remote": "git@github.com:apwheele/CiteCheck.git",
+      "repo": "apwheele/CiteCheck",
+      "tree_url": "https://github.com/apwheele/CiteCheck/tree/ae933d5e5b4097fe5339d4daf8a1022b5d7d0a24"
+    },
+    "items": [
+      {
+        "name": "web_checker_instruction",
+        "role": "checking",
+        "source_file": "python/services/citation_checker.py",
+        "line_start": 290,
+        "line_end": 319,
+        "sha256": "a2638fb851e14ec5c29d60fcfdc8e42b74cffcf66e40ed4d4c61e0299af4d51b",
+        "char_count": 56858,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/ae933d5e5b4097fe5339d4daf8a1022b5d7d0a24/python/services/citation_checker.py#L290-L319"
+      },
+      {
+        "name": "struct_instruction",
+        "role": "checking",
+        "source_file": "python/services/citation_checker.py",
+        "line_start": 321,
+        "line_end": 330,
+        "sha256": "69ac71306d9304d18c570d08ed51b8cdd46dbcefa4023823cb7418754940f8d4",
+        "char_count": 13416,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/ae933d5e5b4097fe5339d4daf8a1022b5d7d0a24/python/services/citation_checker.py#L321-L330"
+      }
+    ]
+  }
+}

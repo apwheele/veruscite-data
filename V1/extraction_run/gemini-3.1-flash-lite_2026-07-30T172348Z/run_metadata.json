@@ -1,0 +1,57 @@
+{
+  "run_id": "gemini-3.1-flash-lite_2026-07-30T172348Z",
+  "run_type": "extraction",
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "started_at": "2026-07-30T17:23:48.409118+00:00",
+  "completed_at": "2026-07-30T17:28:40.661181+00:00",
+  "elapsed_seconds": 292.25,
+  "doc_type": "academic",
+  "ocr_backend": "pypdfium2",
+  "liteparse_format": "",
+  "max_concurrent_documents": 5,
+  "extraction_threads_per_document": 3,
+  "document_count": 36,
+  "totals": {
+    "citation_count": 2292,
+    "input_tokens": 754852,
+    "output_tokens": 642726,
+    "total_tokens": 1397578,
+    "cost_usd": 1.152802,
+    "ocr_seconds": 59.46,
+    "extract_seconds": 1347.24
+  },
+  "prompts": {
+    "file": "prompts.json",
+    "git": {
+      "commit": "2da968623aa43dd9d29d71e99ebdbfecba9240db",
+      "branch": "feature/extraction-doi-underscores",
+      "dirty": true,
+      "remote": "git@github.com:apwheele/CiteCheck.git",
+      "repo": "apwheele/CiteCheck",
+      "tree_url": "https://github.com/apwheele/CiteCheck/tree/2da968623aa43dd9d29d71e99ebdbfecba9240db"
+    },
+    "items": [
+      {
+        "name": "academic_system_prompt",
+        "role": "extraction",
+        "source_file": "python/services/citation_extractor.py",
+        "line_start": 57,
+        "line_end": 104,
+        "sha256": "86fe8e5cac16d7af3de59ae486f9ec647c020bcd662da65d10d797de3ee165b8",
+        "char_count": 9592,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/2da968623aa43dd9d29d71e99ebdbfecba9240db/python/services/citation_extractor.py#L57-L104"
+      },
+      {
+        "name": "reference_check_prompt",
+        "role": "extraction",
+        "source_file": "python/services/citation_extractor.py",
+        "line_start": 118,
+        "line_end": 121,
+        "sha256": "1f504ee26bdbd24911f51c705b10469d9d071cef5d28c105fe587cd518f7c70f",
+        "char_count": 420,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/2da968623aa43dd9d29d71e99ebdbfecba9240db/python/services/citation_extractor.py#L118-L121"
+      }
+    ]
+  }
+}

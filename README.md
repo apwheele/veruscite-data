@@ -23,28 +23,28 @@ veruscite-data/
 
 ## V1 data
 
-- **36 documents**, **2,287** hand-labeled citations in a single `ground_truth.csv`
+- **36 documents**, **2,288** hand-labeled citations in a single `ground_truth.csv`
 - Column `source_pdf` names the PDF under `pdfs/`
 - Labels in `expected_status`: `verified`, `minor_error`, `possible_hallucination`, `not_found`
   (`hallucination` is normalized to `possible_hallucination` on export)
 
 | Kind | Models (kept runs) |
 |------|--------------------|
-| Extraction | **`gemini-3.1-flash-lite`** (2026-07-22, **default**), `gpt-5.4-nano` (2026-07-22) |
-| Checking | Perplexity Gemini 3 flash / 3.1 flash-lite, OpenAI gpt-5.4-mini / nano, Gemini 3.5 flash-lite |
+| Extraction | **`gemini-3.1-flash-lite`** (2026-07-30, **default**), `gpt-5.4-nano` (2026-07-30) |
+| Checking | Perplexity `google/gemini-3.1-flash-lite` (2026-07-30), OpenAI `gpt-5.4-nano` (2026-07-29 + 2026-07-30), Gemini `gemini-3.5-flash-lite` direct (2026-07-29) |
 
 ### Default extraction model
 
 **Google Gemini 3.1 Flash Lite is the default extraction model** for VerusCite production,
-based on the latest full-corpus V1 run (2026-07-22):
+based on the latest full-corpus V1 run (2026-07-30):
 
-| Model | Correct / 2,287 | Missing | Extra | Wall time | Cost |
+| Model | Correct / 2,288 | Missing | Extra | Wall time | Cost |
 |-------|-----------------|---------|-------|-----------|------|
-| **gemini-3.1-flash-lite** | **2,285** | **2** | **8** | **~4.0 min** | ~$1.17 |
-| gpt-5.4-nano | 2,283 | 4 | 13 | ~8.5 min | ~$0.90 |
+| **gemini-3.1-flash-lite** | **2,285** | **3** | **3** | **~4.9 min** | ~$1.15 |
+| gpt-5.4-nano | 2,285 | 3 | 4 | ~12.2 min | ~$0.88 |
 
-Higher accuracy (fewer missing and hallucinated extras) and roughly **2× wall-clock speed**
-vs gpt-5.4-nano on the same 36-document corpus. See the Quarto report
+Same correct count as nano, fewer extras, and roughly **2.5× wall-clock speed**
+on the same 36-document corpus. See the Quarto report
 ([`report.qmd`](report.qmd) → [`report.pdf`](report.pdf) / [`report.md`](report.md)).
 
 ## Rebuild V1 from CiteCheck
@@ -78,5 +78,4 @@ checking_report("V1")
 ## AI disclosure
 
 See the **AI Use Disclosure** section in [`report.qmd`](report.qmd) / rendered report:
-drafting with **Claude** (Anthropic); 2026-07-22 extraction-default and speed updates with
-**Grok 4.5** (xAI). Ground-truth labels and final model-default decisions are human-reviewed.
+drafting with **Claude** (Anthropic); 2026-07-30 extraction/checker refresh, DOI recovery notes, and report updates with **Grok 4.5** (xAI). Ground-truth labels and final model-default decisions are human-reviewed.

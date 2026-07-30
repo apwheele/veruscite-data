@@ -1,0 +1,68 @@
+{
+  "run_id": "gpt-5.4-nano_2026-07-29T175547Z",
+  "run_type": "checking",
+  "provider": "openai",
+  "model": "gpt-5.4-nano",
+  "citation_source": "ground_truth",
+  "started_at": "2026-07-29T17:55:47+00:00",
+  "completed_at": "2026-07-29T19:03:40.460143+00:00",
+  "elapsed_seconds": 4073.46,
+  "max_concurrent_journal": 30,
+  "max_concurrent_other": 10,
+  "max_concurrent_documents": 5,
+  "document_count": 36,
+  "totals": {
+    "citation_count": 2288,
+    "verified": 1850,
+    "not_found": 145,
+    "minor_error": 204,
+    "hallucination": 89,
+    "uncertain": 0,
+    "possible_hallucination": 0,
+    "input_tokens": 29469736,
+    "output_tokens": 1090781,
+    "total_tokens": 30560517,
+    "web_search_calls": 1607,
+    "token_cost_usd": 7.257434,
+    "web_search_cost_usd": 16.07,
+    "cost_usd": 23.327432,
+    "total_citation_latency_seconds": 236717.8,
+    "max_seconds_per_citation": 828.84,
+    "avg_seconds_per_citation": 103.46,
+    "citations_per_minute": 33.7
+  },
+  "prompts": {
+    "file": "prompts.json",
+    "git": {
+      "commit": "041b2664a55acf4267d5877f1a68f82c422f9367",
+      "branch": "feature/unpublished-manuscript-unfound",
+      "dirty": true,
+      "remote": "git@github.com:apwheele/CiteCheck.git",
+      "repo": "apwheele/CiteCheck",
+      "tree_url": "https://github.com/apwheele/CiteCheck/tree/041b2664a55acf4267d5877f1a68f82c422f9367"
+    },
+    "items": [
+      {
+        "name": "web_checker_instruction",
+        "role": "checking",
+        "source_file": "python/services/citation_checker.py",
+        "line_start": 290,
+        "line_end": 319,
+        "sha256": "a2638fb851e14ec5c29d60fcfdc8e42b74cffcf66e40ed4d4c61e0299af4d51b",
+        "char_count": 56858,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/041b2664a55acf4267d5877f1a68f82c422f9367/python/services/citation_checker.py#L290-L319"
+      },
+      {
+        "name": "struct_instruction",
+        "role": "checking",
+        "source_file": "python/services/citation_checker.py",
+        "line_start": 321,
+        "line_end": 330,
+        "sha256": "69ac71306d9304d18c570d08ed51b8cdd46dbcefa4023823cb7418754940f8d4",
+        "char_count": 13416,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/041b2664a55acf4267d5877f1a68f82c422f9367/python/services/citation_checker.py#L321-L330"
+      }
+    ]
+  },
+  "note": "Run was interrupted by timeout after 33/36 docs; remaining 3 finished via single_check and metadata reconstructed from per-doc CSVs."
+}
