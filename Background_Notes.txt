@@ -1,0 +1,96 @@
+# Hallucinated Peer-Reviewed References: Recent Research & Reports
+
+A summary of recent peer-reviewed papers, preprints, and reports documenting hallucinated/fabricated citations and their rising prevalence due to generative AI.
+
+---
+
+## Large-Scale Peer-Reviewed / Preprint Studies
+
+### 1. Fabricated citations: an audit across 2.5 million biomedical papers
+**Topaz, M. et al. — *The Lancet* (May 7, 2026)**
+DOI: [10.1016/s0140-6736(26)00603-3](https://doi.org/10.1016/s0140-6736(26)00603-3)
+
+A Columbia University School of Nursing team built an automated AI-based verification system and scanned 2.5 million papers published from January 1, 2023, to February 18, 2026, in PubMed Central's Open Access. Among 97.1 million verified references, they identified 4,046 fake citations across 2,810 papers, with the rate growing more than 12-fold since 2023 — from ~4 per 10,000 papers in 2023 to 51.3 per 10,000 in Q4 2025, reaching 56.9 per 10,000 in early 2026. 98.4% of affected papers had received no publisher action at the time of the audit.
+
+Companion editorial: Bauchner, H. & Rivara, F.P., "Fabricated references: a new threat to editorial integrity," *The Lancet* (2026). DOI: [10.1016/s0140-6736(26)00798-1](https://doi.org/10.1016/s0140-6736(26)00798-1)
+
+Coverage:
+- https://www.eurekalert.org/news-releases/1127364
+- https://www.nursing.columbia.edu/news/nearly-3-000-peer-reviewed-medical-papers-have-fake-citations-columbia-nursing-ai-assisted-audit-finds
+- https://phys.org/news/2026-05-peer-medical-papers-fake-citations.html
+- https://www.business-standard.com/world-news/audit-finds-3-000-biomedical-papers-with-fake-citations-amid-ai-surge-126051100588_1.html
+- https://bioengineer.org/columbia-nursing-ai-audit-reveals-nearly-3000-peer-reviewed-medical-papers-contain-fake-citations/
+- https://echoharbor.news/articles/columbia-nursing-audit-finds-3000-fake-medical-citations-938774aa-a69-5af517
+
+---
+
+### 2. LLM hallucinations in the wild: Large-scale evidence from non-existent citations
+**arXiv preprint (2026)**
+Link: https://arxiv.org/pdf/2605.07723
+
+Bibliometric study estimating hallucinated citation rates across arXiv, bioRxiv, SSRN, and PMC. Found a monthly rate reaching 3,353 (arXiv), 478 (bioRxiv), 767 (SSRN), and 8,140 (PMC) in August 2025 — projecting ~146,932 hallucinated citations across these four repositories in 2025 alone, likely a lower bound on true prevalence. Found hallucinated references disproportionately credited prominent and male scholars, and were most common among early-career researchers and small teams.
+
+Coverage: https://phys.org/news/2026-05-ai-generated-fake-citations-scientific.html
+
+---
+
+### 3. Fraudulent citations becoming more common in research papers
+**STAT News (May 8, 2026)**
+Link: https://www.statnews.com/2026/05/07/lancet-study-finds-steep-rise-fraudulent-citations-academic-papers/
+
+Reports a separate dataset finding: in 2023, 1 in 2,828 papers contained one or more fabricated references; by 2025 that had reached 1 in 458 (a sixfold increase); during the first seven weeks of 2026, the rate reached 1 in 277 papers.
+
+---
+
+### 4. Compound Deception in Elite Peer Review: A Failure Mode Taxonomy of 100 Fabricated Citations at NeurIPS 2025
+**arXiv preprint (2026)**
+Link: https://arxiv.org/pdf/2602.05930
+
+Builds a taxonomy of failure modes based on GPTZero's audit of NeurIPS 2025, examining how hallucinated citations evaded expert peer review (3–5 reviewers per paper).
+
+---
+
+### 5. Hallucinations in generative AI: A threat to scholarly integrity and the urgent need for publisher-led academically supervised verification
+**ScienceDirect (2026)**
+Link: https://www.sciencedirect.com/science/article/abs/pii/S221462962600191X
+
+Frames hallucinated references as a cross-pipeline threat (writing, reviewing, publishing stages). Notes that GPTZero's January 2026 analysis of 4,841 NeurIPS 2025 accepted papers revealed at least 100 confirmed hallucinated citations spanning 53 papers (~1% of accepted work) despite peer review. Also reports that advanced models like GPT-4o and Claude 3.7 still exhibit 15–20% hallucination rates on factual citation tasks, rising to 35–55% on niche/recent topics.
+
+---
+
+### 6. New sources of inaccuracy? A conceptual framework for studying AI hallucinations
+**HKS Misinformation Review (August 2025)**
+Link: https://misinforeview.hks.harvard.edu/article/new-sources-of-inaccuracy-a-conceptual-framework-for-studying-ai-hallucinations/
+
+Conceptual framework situating citation hallucination within broader AI-driven inaccuracy, including risk of an "AI-on-AI" feedback loop where AI-generated inaccuracies pollute future training data, contributing to model collapse.
+
+---
+
+## Industry Audits & Adjacent Reports
+
+### GPTZero NeurIPS 2025 / ICLR 2026 Audits
+- NeurIPS 2025: https://gptzero.me/news/neurips/ — found 100+ confirmed hallucinated citations across 53 papers
+- ICLR 2026: https://gptzero.me/news/iclr-2026/ — found 50+ new hallucinations in submissions
+- Also see Deloitte Australia case: https://gptzero.me/news/deloitte-australia-citation-check/
+
+### AI Hallucination: Compare top LLMs like GPT-5.2
+**aimultiple.com (January 2026)**
+Link: https://aimultiple.com/ai-hallucination
+
+Industry roundup covering the GPTZero NeurIPS findings and broader hallucination trends across sectors.
+
+### When AI Gets It Wrong: Addressing AI Hallucinations and Bias
+**MIT Sloan Teaching & Learning Technologies (2026)**
+Link: https://mitsloanedtech.mit.edu/ai/basics/addressing-ai-hallucinations-and-bias/
+
+Overview piece covering hallucinations across legal, academic, and educational contexts, including Stanford HAI findings that general-purpose AI chatbots hallucinated on 58–82% of legal research queries (2023-era models), and even RAG-based legal AI tools hallucinated 17%+ of the time (Magesh et al., 2025).
+
+---
+
+## Summary Pattern
+
+Across these sources, a consistent picture emerges:
+1. Fabricated/hallucinated citations existed at low but nonzero rates before 2023.
+2. Rates have risen sharply (roughly 6x to 12x by different measures) since mid-2024, coinciding with generative AI adoption in academic writing.
+3. Existing peer review and editorial safeguards are largely failing to catch these errors before publication — even at top venues with rigorous review (e.g., NeurIPS).
+4. The problem spans disciplines: biomedical research, AI/ML conferences, legal filings, and government reports.

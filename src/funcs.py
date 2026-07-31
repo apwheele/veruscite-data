@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 import pandas as pd
+from IPython.display import Markdown
 
 from src.metrics import (
     checking_report,
@@ -13,9 +14,44 @@ from src.metrics import (
     load_ground_truth,
 )
 
+# Plain numbers, one-decimal strings, and metric cells like "0.1% (2)" / "63.1% (89/141)".
+_NUMERIC_CELL = re.compile(
+    r"""^
+    [\d,]+(?:\.\d+)?%?          # 12 / 1.15 / 63.1%
+    (?:\s*\([^)]*\))?           # optional (2) or (89/141)
+    $""",
+    re.VERBOSE,
+)
+
 # Public package ships as V1/ (capital V); accept either spelling on case-sensitive FS.
 _ROOT = Path(__file__).resolve().parent.parent
 V1_DIR = _ROOT / "V1" if (_ROOT / "V1").is_dir() else _ROOT / "v1"
+
+
+def md_table(df: pd.DataFrame) -> Markdown:
+    """Render a DataFrame as markdown with numeric columns right-aligned.
+
+    Uses disable_numparse so pre-formatted decimals (e.g. Docs/min ``3.0``)
+    are preserved, and colalign so number columns stay right-aligned in PDF.
+    """
+    aligns = [_column_align(df[col]) for col in df.columns]
+    return Markdown(
+        df.to_markdown(index=False, disable_numparse=True, colalign=aligns)
+    )
+
+
+def _column_align(series: pd.Series) -> str:
+    """Return 'right' for numeric / metric columns, else 'left'."""
+    if pd.api.types.is_numeric_dtype(series):
+        return "right"
+    vals = [
+        str(v).strip()
+        for v in series
+        if pd.notna(v) and str(v).strip() != ""
+    ]
+    if vals and all(_NUMERIC_CELL.match(v) for v in vals):
+        return "right"
+    return "left"
 
 
 def ground_truth_summary() -> pd.DataFrame:
@@ -52,9 +88,12 @@ def extraction_table() -> pd.DataFrame:
     else:
         df["wall_min"] = pd.NA
     if "docs_per_minute" in df.columns:
-        df["docs_per_min"] = df["docs_per_minute"].round(1)
+        # Force one decimal in markdown/PDF (avoids 3 vs 3.0).
+        df["docs_per_min"] = df["docs_per_minute"].map(
+            lambda x: f"{float(x):.1f}" if pd.notna(x) else ""
+        )
     else:
-        df["docs_per_min"] = pd.NA
+        df["docs_per_min"] = ""
     # Default model first (gemini-3.1-flash-lite), then by extraction rate desc.
     df["_default"] = df["model"].eq("gemini-3.1-flash-lite").astype(int)
     df = df.sort_values(
@@ -63,7 +102,6 @@ def extraction_table() -> pd.DataFrame:
     ).reset_index(drop=True)
     cols = [
         "model",
-        "ocr_backend",
         "real_citations",
         "correctly_extracted",
         "missing_citations",
@@ -76,15 +114,14 @@ def extraction_table() -> pd.DataFrame:
     out = df[cols].copy()
     out.columns = [
         "Model",
-        "OCR",
         "Real",
         "Correct",
         "Missing",
         "Extra",
         "Rate (%)",
-        "Wall (min)",
+        "Wall min",
         "Docs/min",
-        "Cost (USD)",
+        "Cost",
     ]
     return out
 
@@ -92,7 +129,6 @@ def extraction_table() -> pd.DataFrame:
 def checking_table() -> pd.DataFrame:
     """Formatted checker results table (key metrics only)."""
     df = checking_report(V1_DIR)
-    df["cost_usd"] = df["cost_usd"].round(2)
     cols = [
         "model",
         "provider",
@@ -100,19 +136,16 @@ def checking_table() -> pd.DataFrame:
         "verified_fp_minor_error",
         "hallucination_recall",
         "not_verified_recall",
-        "verified_via_crossref",
-        "cost_usd",
     ]
     out = df[cols].copy()
+    # Compact headers avoid PDF column collision on letter-size pages.
     out.columns = [
         "Model",
         "Provider",
-        "FP Hallucination",
-        "FP Minor Error",
-        "Hallucination Recall",
-        "Not-Verified Recall",
-        "CrossRef Verified",
-        "Cost (USD)",
+        "FP Hall.",
+        "FP Minor",
+        "Hall. Recall",
+        "NV Recall",
     ]
     return out
 
