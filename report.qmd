@@ -1,12 +1,18 @@
 ---
 title: "VerusCite V1 Benchmark: Citation Verification Accuracy"
 author: "Andrew Wheeler"
-date: "2026-07-30"
+date: today
+date-format: YYYY-MM-DD
 format:
   pdf:
     toc: true
     number-sections: true
     colorlinks: true
+    include-in-header:
+      text: |
+        \usepackage{etoolbox}
+        \AtBeginEnvironment{longtable}{\footnotesize\setlength{\tabcolsep}{4pt}}
+        \AtBeginEnvironment{tabular}{\footnotesize\setlength{\tabcolsep}{4pt}}
   gfm:
     toc: true
     number-sections: true
@@ -22,31 +28,28 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(".").resolve()))
 from src.funcs import (
-    V1_DIR,
     ground_truth_summary,
     ground_truth_totals,
     extraction_table,
     checking_table,
     cost_comparison_table,
+    md_table,
 )
 from src.metrics import checking_report, extraction_report, load_ground_truth
-from IPython.display import Markdown
 import pandas as pd
 
-V1 = V1_DIR
-
-def md_table(df):
-    """Render a DataFrame as a markdown table (no row index)."""
-    return Markdown(df.to_markdown(index=False))
+V1 = Path("v1")
 ```
 
 ## The Problem
 
-Fabricated citations in academic papers have grown sharply since the widespread adoption of generative AI writing tools. A Lancet audit of 2.5 million biomedical papers found hallucinated reference rates rising 12-fold between 2023 and early 2026 [@topaz2026fabricated]. GPTZero's audit of NeurIPS 2025 found over 100 confirmed hallucinated citations across 53 accepted papers despite rigorous peer review [@gptzero2026neurips]. Separate estimates project roughly 147,000 hallucinated citations across arXiv, bioRxiv, SSRN, and PMC in 2025 alone [@zhao2026llmhallucinationswildlargescale].
+Fabricated citations in academic papers have grown sharply since the widespread adoption of generative AI writing tools. A Lancet audit of 2.5 million biomedical papers found hallucinated reference rates rising 12-fold between 2023 and early 2026 [@topaz2026fabricated]. Separate estimates project roughly 147,000 hallucinated citations across arXiv, bioRxiv, SSRN, and PMC in 2025 alone [@zhao2026llmhallucinationswildlargescale].
 
 Existing peer review and editorial safeguards largely fail to catch these errors before publication. The problem spans disciplines: biomedical research, AI/ML conferences, legal filings, and government reports.
 
-While AI use is driving a surge in publications [see @wheeler2026llmbook for a practical overview], the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite.com](https://veruscite.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
+While AI use is driving a surge in publications [see @wheeler2026llmbook for a practical overview], the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite-data.com](https://veruscite-data.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
+
+This tool is meant to be a quick and cheap approach to scan a bibliography for a paper, and determine if a citation is correct, has minor errors, or appears to have more serious issues, such as an AI generated hallucination. This paper serves as reference to the overall architecture and design of the project, as well as a source of false positive and negative rates on a benchmarked corpus of real papers.
 
 ## Approach
 
@@ -54,13 +57,11 @@ While AI use is driving a surge in publications [see @wheeler2026llmbook for a p
 
 Even in documents with hallucinated citations, the majority of references are legitimate. A tool with a high false positive rate -- flagging real papers as hallucinations -- would waste a reviewer's time chasing false alarms rather than finding actual problems. VerusCite prioritizes **precision over recall**: it is better to miss some hallucinations than to incorrectly flag verified citations.
 
-The target false positive rate for hallucination flags is below 1%. Recall for detecting actual hallucinations is around 70-80%. This tradeoff means a human reviewer spends most of their time on citations that genuinely need attention rather than dismissing false reports.
+The target false positive rate for hallucination flags is below 1%. Recall for detecting actual hallucinations is around 70-80%. This trade-off means a human reviewer spends most of their time on citations that genuinely need attention rather than dismissing false reports.
 
 The application is designed for human-in-the-loop review. Each citation's verification status can be manually overridden, and the interface surfaces the reasoning behind each determination so reviewers can make informed decisions quickly.
 
-### Comparison to Similar Tools
-
-This approach is similar to Pangram, which also emphasizes low false positive rates for AI-generated content detection. Their published materials discuss the same tradeoff: when base rates of problematic content are low, even small false positive rates cause most flagged items to be false alarms [@emi2024falsepositives].
+Similar to work in Pangram, I believe that it is necessary to have the tool have as few of false positives as possible [@emi2024falsepositives]. While this report will show that those false positives are not zero (any realistic tool should report a certain error rate), I believe 
 
 ## Pipeline Architecture
 
@@ -68,6 +69,31 @@ VerusCite processes documents in two stages:
 
 1. **Citation Extraction** -- An LLM reads the document text and identifies individual references, parsing out structured fields (title, authors, year, journal, DOI).
 2. **Citation Verification** -- Each extracted citation is checked against external sources to determine whether it exists as described.
+
+For citation extraction, the tool uses text searching across the document (if a PDF or word document is uploaded) to attempt to determine the location of the reference section. This tool currently works with reference sections combined in an article, it does not work with footnote style citations (as is common in law articles).
+
+If uploading a bibliography file, such as a Bibtext `.bib` file, a `.ris` file, or an Endnote `.enw` file, the tool uses text tools to automatically extract out the reference information.
+
+Once the reference section is identified, the reference section is then chunked into smaller portions, and uses a served LLM model (see later benchmark results) to extract out the citations into a structured sections. This means the LLM is only sent the references for the document, it is not sent other parts of the manuscript.
+
+Each extracted citation is then checked independently. First the citation is checked against the Crossref database. If it is not found in Crossref, then an agentic tool uses web-search and fetch to verify whether the citation exists in external sources.
+
+This independence means that in a document with some errors, other documents are not falsely assumed to be hallucinated. It also allows processing the documents in parallel, to return the results back faster.
+
+### Models Considered
+
+Because the task involves web-search, when checking citations that are not verified via Crossref, this limits the potential pool of LLM providers. Here I consider two major companies:
+
+ - Gemini family models
+ - OpenAI family models
+
+In particular, I focus on the cheaper models (flash-lite for Gemini and Nano/Luna for OpenAI) with minimal reasoning. I additionally consider these same models, but using the web search tools provided by *Perplexity*.
+
+I do not consider Anthropic, as even their cheapest model (Haiku) is considerably more expensive than the models I evaluated here. I only partially evaluated AWS Nova-2 lite with their web search (latency was too long). Grok 4.3 did well in the benchmark tests but was considerably more expensive.
+
+Extraction does not need web search, and so while I evaluated many other models on Bedrock (such as the open source GPT and Gemini models), they were not as accurate as the frontier served models. Extraction takes around 2 to 3 cents per document, so at this time I am not concerned about cost, although in the future likely even smaller open source models (especially if fine tuned) will be sufficient for the extraction task.
+
+I would consider additional open source models in the future (such as DeepSeek flash) for citation checking, although it will be necessary to incorporate custom web search and fetch tools in conjunction with the served models. If the models are not provided out of the box by Perplexity.
 
 ### Verification Categories
 
@@ -80,18 +106,29 @@ The checker assigns each citation one of four statuses:
 | **Hallucination** | No evidence the cited work exists as described |
 | **Not Found** | Unable to confirm or deny -- includes bare URL citations and paywalled/very recent works with insufficient search results |
 
-### Verification Method
+Many citations have minor errors (perhaps on the magnitude of 5% in my personal assessment). These include many innocuous things that are likely human introduced errors, like a year off or page numbers wrong.
 
-Verification proceeds in two passes:
+The major different between a hallucination and a minor error is that hallucinations tend to have whole cloth differences that are difficult to explain. Such as journals entirely replaced. For example, @NBERw35482 has the citation:
 
-1. **Static CrossRef lookup** -- A title/DOI search against CrossRef metadata. Fast and free. Confirms roughly 60% of legitimate citations without needing web search.
-2. **Web search verification** -- Citations not resolved by CrossRef are sent to a web-search-enabled LLM (Perplexity or OpenAI web search tools) to locate evidence of the publication.
+> Elrod, Linda D. (2006). “A Move in the Right Direction? Best Interests of the Child Emerging as the Standard for Relocation Cases”. Journal of the American Academy of Matrimonial Lawyers 15, pp. 1-54.
 
-The primary checker configurations reported here are **Perplexity** (hosting Gemini 3.1 Flash Lite and OpenAI GPT-5.4-nano), **direct Google Gemini 3.5 Flash Lite**, and **OpenAI** direct (`gpt-5.4-nano` and `gpt-5.6-luna`, with web search). Having multiple providers is important operationally -- any single provider experiences periodic outages or rate limits. Results reported here represent the range across these configurations.
+This is a real paper, but should be cited as:
 
-Cost is kept low by using smaller models with web search rather than large frontier models. A full corpus check (36 papers, ~2,288 citations) runs between roughly **$0.35–$0.65 per paper** depending on the model.
+> Elrod, Linda D. (2006). “A Move in the Right Direction? Best Interests of the Child Emerging as the Standard for Relocation Cases”. Journal of Child Custody 3, 29–61. https://doi.org/10.1300/J190v03n03_03
 
-## Ground Truth
+While the [Journal of the American Academy of Matrimonial Lawyers does exist](https://www.aaml.org/resources/aaml-journal/), there is no combination of volumes and page numbers that could reasonably be confused with the article in the Journal of Child Custody.
+
+While no automated tool can never find 100% proof that a citation was hallucinated via a generative AI tool, it is difficult to construct a scenario where a bibliography had such errors manually generated, especially the volume and page numbers that do not exist in any comparable document for the Elrod citation.
+
+Hallucinations can also include when multiple authors are incorrect, but author name errors are much more common, so they are less likely to be flagged. For an example of a minor error @10.1371/journal.pone.0353669 has the reference:
+
+> 33. Croft TMA, Allen CK, Arnold F, Assaf S, Balian S. Guide to DHS Statistics: DHS-7 (version 2). Rockville, MD: ICF. 2020.
+
+The actual author list includes an Aileen M.J. Marshall, whose initials were concatenated into the first author (see page 2 at <https://dhsprogram.com/pubs/pdf/DHSG1/Guide_to_DHS_Statistics_DHS-7_v2.pdf>).
+
+Minor errors are incredibly prevalent. Any tool intended to do the same task needs to effectively distinguish between minor errors to be able to identify actual hallucinated citations.
+
+## Benchmark
 
 ```{python}
 #| output: false
@@ -105,85 +142,92 @@ n_not_found = int(totals.get("not_found", 0))
 
 The V1 validation corpus contains **`{python} n_citations`** hand-labeled citations across **36 documents**. Sources are intentionally heterogeneous:
 
-- Papers with known hallucinations identified by others on social media (Chris Carothers, David Buil-Gil)
+- Papers with known hallucinations identified by others on social media ([Chris Carothers on X](https://x.com/ChrisCarothers/status/2065792749282943030), [David Buil-Gil on BlueSky](https://bsky.app/profile/davidbuil.bsky.social/post/3mijyzwvet22d))
 - GPTZero's NeurIPS 2025 audit [@gptzero2026neurips]
 - Papers flagged by Reviewer3 [@reviewer3]
-- A ChatGPT deep-research output where all 12 citations are fabricated
-- Clean papers (dissertation excerpts, open-access criminology, PLoS ONE articles)
+- A ChatGPT deep-research output where all 12 citations are fabricated [@Jacques03042026]
+- Clean papers (my own dissertation excerpts, open-access criminology, PLoS ONE articles)
 - MDPI and preprint samples
+
+The corpus spans categories in social sciences, physics, mathematics, as well as many different formats, including many different pre-print and journal format examples.
 
 Of the `{python} n_citations` citations, `{python} n_verified` (`{python} f"{100*n_verified/n_citations:.1f}"`%) are verified, `{python} n_minor` (`{python} f"{100*n_minor/n_citations:.1f}"`%) have minor errors, `{python} n_hallucination` (`{python} f"{100*n_hallucination/n_citations:.1f}"`%) are hallucinations, and `{python} n_not_found` (`{python} f"{100*n_not_found/n_citations:.1f}"`%) are not found. The corpus skews heavily toward verified citations (as real documents do), which makes false positive rate the critical metric.
 
-## Extraction Results
+There are two different metrics a user should be interested in. First is whether the tool can actually extract out the references accurately. This is non-trivial in and of itself -- a skills based approach submitting a large document with an extensive bibliography is likely the generate more errors in this steps.
 
-Citation extraction uses an LLM to parse the document text and identify individual references. The table below shows extraction accuracy **and wall-clock speed** against the ground truth (latest kept runs, **2026-07-30**).
+The second metric is in terms of false positives (e.g. a good citation is flagged as a hallucination), and recall rates (of all the hallucinations, how many does the tool capture). Below are those metrics for this corpus on the current VerusCite tool across different LLM providers.
+
+### Extraction Results
+
+Citation extraction uses an LLM to parse the document text and identify individual references. The table below shows extraction accuracy against the ground truth. There are two types of errors that can occur, you can miss a reference, or the tool can add in a reference.
 
 ```{python}
 #| label: tbl-extraction
-#| tbl-cap: "Extraction accuracy and speed by model (pypdfium2 OCR)"
+#| tbl-cap: "Extraction accuracy by model"
 md_table(extraction_table())
 ```
 
-```{python}
-#| output: false
-ext = extraction_report(V1)
-ext_sorted = ext.sort_values("correctly_extracted", ascending=False).reset_index(drop=True)
-default_row = ext[ext["model"] == "gemini-3.1-flash-lite"].iloc[0]
-nano_rows = ext[ext["model"] == "gpt-5.4-nano"]
-nano_row = nano_rows.iloc[0] if len(nano_rows) else None
-default_rate = 100.0 * float(default_row["correctly_extracted"]) / float(default_row["real_citations"])
-default_wall_min = float(default_row["wall_elapsed_seconds"]) / 60.0
-_dpm = default_row["docs_per_minute"]
-default_dpm = float(_dpm) if pd.notna(_dpm) else float("nan")
-nano_wall_min = float(nano_row["wall_elapsed_seconds"]) / 60.0 if nano_row is not None else float("nan")
-speedup = (nano_wall_min / default_wall_min) if (nano_row is not None and default_wall_min > 0) else float("nan")
-```
+Extraction is very accurate across models. Gemini 3.1 Flash Lite (using pypdfium2 to read in the text, we additionally considered liteparse with markdown) correctly extracts over 99.8% of citations at under $0.03 per paper for the full corpus. The few "extra" rows are typically page footers, footnotes, or duplicate listings that the LLM picks up in addition to the actual bibliography.
 
-Extraction is very accurate across models. **Gemini 3.1 Flash Lite is the default production extraction model**: it correctly extracts about **`{python} f"{default_rate:.2f}"`%** of citations (matching `gpt-5.4-nano` on correct count, with fewer extras) and finishes the full 36-document corpus in about **`{python} f"{default_wall_min:.1f}"` minutes** wall time (~`{python} f"{default_dpm:.1f}"` docs/min), roughly **`{python} f"{speedup:.1f}"`×** as fast as `gpt-5.4-nano` on the same batch. Cost remains on the order of a few cents per paper for the full corpus.
+I also tested `liteparse` with the markdown export format to extract out the text from PDFs, which tended to produce slightly more artifacts -- it does not distinguish line breaks for individual citations as cleanly as pypdfium2, producing a few more missed or merged entries. Results were largely similar overall (and I may migrate to using liteparse with markdown in the future).
 
-The few "extra" rows that remain are typically table fragments or rare non-bibliography lines the model still surfaces; numbered discursive footnotes and author bios are filtered in the current pipeline. PDF text extraction uses `pypdfium2`, with link-annotation DOI repair so LaTeX rule-drawn underscores in DOIs are recovered from hyperlink targets when the selectable text layer has spaces.
+Both the extraction part of the pipeline and the citation check part of the pipeline have fallback models, as it is common for these LLM providers to have downtime with models. The current production version of VerusCite uses 3.1 flash lite (served by Google) as the primary extraction model (due to both accuracy and cost). The fallback model is currently gpt-5.6-luna. While OpenAI (both the 5.4 nano and 5.6 luna models) are somewhat cheaper, due to the lower accuracy and time, it is not used at this point. (The cost only saves around 1 cent per paper.)
 
-`gpt-5.4-nano` and `gpt-5.6-luna` are retained as OpenAI comparison baselines (luna is slightly cheaper and faster wall-clock than nano here, with a few more missing/extra citations).
+Generally the prompts are constructed in a way that advanced reasoning is not necessary. So going up to larger reasoning models (and expanding the reasoning budget) does not result in higher accuracy. For OpenAI, you can see that the recent luna model did not result in any more accurate results than nano.
 
-## Checker Results
+## Citation Checking Results
+
+The citation checking results break down the benchmark against both the model, and the provider. When Perplexity is the provider, it means the tool called Perplexity servers (using their internal web search), whereas if the provider is gemini it uses Googles web search tool, or OpenAI uses its internal web search tool. Otherwise all prompts are the same across each of the models.
+
+The citation checking results input in correct data -- extraction and checking are done in independent benchmarks. So each of the `{python} n_citations` citations, it is independently run though the checking benchmark, swapping out the model used.
 
 ```{python}
 #| label: tbl-checking
-#| tbl-cap: "Checker accuracy by model/provider"
+#| tbl-cap: "Citation Checking accuracy by model/provider"
 md_table(checking_table())
 ```
 
-```{python}
-#| output: false
-chk = checking_report(V1)
-# Parse percentage strings like "0.4% (7)" / "69.5% (98/141)"
-def _pct(series):
-    return series.astype(str).str.extract(r"([\d.]+)%", expand=False).astype(float)
+### False Positives
 
-fp_hall_max = float(_pct(chk["verified_fp_hallucination"]).max())
-nv_recall_min = float(_pct(chk["not_verified_recall"]).min())
-nv_recall_max = float(_pct(chk["not_verified_recall"]).max())
-hall_recall_max = float(_pct(chk["hallucination_recall"]).max())
-best_hall_idx = _pct(chk["hallucination_recall"]).idxmax()
-best_hall_model = str(chk.loc[best_hall_idx, "model"])
-best_hall_provider = str(chk.loc[best_hall_idx, "provider"])
-crossref_med = int(chk["verified_via_crossref"].median())
-cost_min = float(chk["cost_usd"].min())
-cost_max = float(chk["cost_usd"].max())
-cost_per_min = cost_min / 36.0
-cost_per_max = cost_max / 36.0
-cheapest_idx = chk["cost_usd"].idxmin()
-cheapest_model = str(chk.loc[cheapest_idx, "model"])
-cheapest_provider = str(chk.loc[cheapest_idx, "provider"])
-```
+For key metrics, there are a total of `{python} n_verified` correct citations in the corpus. So false positives (FP) rates are of those `{python} n_verified` correct citations, how many were falsely flagged by the tool. 
 
-Key metrics:
+The current FP rates for hallucinations are well under 1%, and vary between 2 to 7 total false positives across the different models in this corpus. Hallucination false positive are often attributable to idiosyncratic web search results. (The agentic tools often will return a response, even if the web search tool is currently inaccessible.) Using Perplexity web search generally results in the same accuracy as using Google or OpenAI web search.
 
-- **FP → Hallucination**: Percentage of actually-verified citations incorrectly flagged as hallucinations. All configurations stay at or below **`{python} f"{fp_hall_max:.1f}"`%**.
-- **Not-Verified Recall**: Percentage of actual problems (hallucinations + minor errors + not-found) correctly identified. Ranges from about **`{python} f"{nv_recall_min:.0f}"`–`{python} f"{nv_recall_max:.0f}"`%** across the kept runs.
-- **Hallucination Recall**: Percentage of actual hallucinations correctly flagged. The best configuration here (**`{python} best_hall_model`** via **`{python} best_hall_provider`**) achieves about **`{python} f"{hall_recall_max:.1f}"`%**.
+For an example of a false positive hallucination in this particular run, my dissertation has the citation:
 
-### Cost Breakdown
+> Pearl, J. (2000). Causality: models, reasoning and inference, Volume 29. Cambridge Univ Press.
+
+And 5.4 nano lists as reasoning for classifying this as a hallucination:
+
+> Upstream verdict: book exists and matches author/title/year/publisher, but the cited “Volume 29” element is not supported by the primary publisher/library records surfaced in the tool results and is treated as fabricated metadata; therefore status mapped to hallucination.
+
+This behavior is not consistent, either within 5.4. nano or across other models. (This most often returns a "minor error", although my ground truth I have this as "verified". Some sources list the published year as 2001, causing additional issues beyond just the "Volume 29" addition.) I have intentionally avoided K-shot examples in the prompt, so there is as little leakage as possible and the prompts should better generalize to out of sample data. But given the stochastic nature of LLMs, some errors will ultimately occur.
+
+FP rates for minor errors are more prevalent, being close to 1% for the Gemini models, but over 2% for the OpenAI models. The current tool in production uses Gemini 3.5 flash-lite (Perplexity is currently having issues consistently calling 3.5 flash-lite).
+
+The general approach I took was to evaluate when both OpenAI and Google models returned false positives. While these do happen in the corpus, in some cases they are inevitable, as CrossRef or other online data provides conflicting information. For one example citation:
+
+> [CS22] T. Cieśla and M. Sabok. Measurable Hall’s theorem for actions of abelian groups, J. Eur. Math. Soc., 24 (2022), 2751-2773 (cit. on pp. 3, 44)
+
+Consistently produces a "minor error" category in the tool due to the citation year. Going to the website, the citation year is correctly 2022. But [crossref lists the publication year as 2021](https://search.crossref.org/search/works?q=10.4171%2FJEMS%2F1164&from_ui=yes).
+
+Many of the false positives are minor errors like this (and likely some of the labels in the ground truth should be updated -- feel free to contact me if you believe an articles classification is not correct in the ground truth). False positives for not found tend to be due to unreliable web search, and so are intermittent and not consistent due to the tool.
+
+### Recall
+
+Recall is the proportion of the true errors that are captured by the current tool. These are more variable across the different tools, with OpenAI models having greater recall (which comes with more false positives). Hallucination recall for the gemini models is currently ranges between 60 and 70%, whereas OpenAI luna is at 75%.
+
+Minor error recall is similarly lower for Gemini (with the current model in production 3.5 flash-lite), at 52.7%. OpenAI has higher recall (often higher than 70%) for minor errors. Not found recall is near perfect across all models.
+
+The final category, not verified, collapses the categories of minor error, hallucination, and not found. So if many hallucinations were classified into minor error, the direct recall rates would be low, but not verified (which will typically trigger a human review) would still be high. These are consistently over 80% across all model runs, with the exception of Gemini 3.5 flash lite (which is mostly due to low recall on minor errors).
+
+Given Gemini is currently much faster as well, this is the model chosen for production. The fallback model is currently OpenAI luna.
+
+### Cost Breakdown for Citation Checking
+
+For the `{python} n_citations` total citations, approximately 1310 citations were verified via Crossref after extraction (about 57%) for each of the models. These are largely automated, and so incur no additional LLM cost. When those fail however, an agent based LLM tool needs to use web search and fetch to identify whether the citation is correct. Thus costs incur for both token usage as well as web search. Web search costs $5 per 1000 searches on Perplexity, $7 per 1000 searches for OpenAI, and $14 per 1000 searches for Google.
+
+The prompts are generally short enough that token caching does not occur at all for the Gemini models (needs over 4000 tokens). Some token caching does occur for OpenAI (although these costs do not include that), but it is relatively small (and the majority of token costs are output).
 
 ```{python}
 #| label: tbl-cost
@@ -193,11 +237,7 @@ costs["Per Paper (USD)"] = (costs["Total (USD)"] / 36).round(2)
 md_table(costs)
 ```
 
-Full-corpus checker cost ranges from about **$`{python} f"{cost_min:.2f}"`–$`{python} f"{cost_max:.2f}"`** (~$`{python} f"{cost_per_min:.2f}"`–$`{python} f"{cost_per_max:.2f}"` per paper). The cheapest kept configuration is **`{python} cheapest_model`** (`{python} cheapest_provider`) at ~$`{python} f"{cost_per_min:.2f}"` per paper. Perplexity-hosted Gemini 3.1 Flash Lite sits in the middle on cost while offering strong not-verified and hallucination recall; OpenAI `gpt-5.6-luna` improves hallucination recall versus `gpt-5.4-nano` at a similar verified false-positive rate and mid-range cost; OpenAI `gpt-5.4-nano` remains the most expensive kept run (more web searches) with strong not-verified recall.
-
-### CrossRef as First Pass
-
-Across the kept checker runs, about **`{python} crossref_med`** citations are confirmed via static CrossRef lookup alone (no web search needed) -- on the order of two-thirds of verified citations -- which keeps per-citation expenses low and latency down.
+The newer 3.5 flash lite model has resulted in lower token costs (despite being slightly more expensive than 3.1 flash-lite). One can see though across this corpus, costs are typically around 50 cents per paper to process, with often more than half of the cost being devoted to web search.
 
 ## Privacy
 
@@ -211,18 +251,18 @@ The V1 corpus is heterogeneous by design, but 36 documents is a limited sample. 
 
 Known limitations of the current evaluation:
 
-- Ground truth labels for some documents were seeded from the checker itself and hand-reviewed, which may introduce subtle bias toward the checker's own patterns.
+- Ground truth labels for some documents have ambiguous categories that likely could be reasonably changed. This is particularly true for the minor error category. 
 - "Not found" is an inherently ambiguous category -- some citations are bare URLs, others exist but are difficult to locate via web search (paywalled, very recent, or in non-English databases).
 - The corpus over-represents arXiv preprints relative to other domains (law, humanities, clinical medicine).
 
 ## Reproducibility
 
-All data for this report is public at [github.com/apwheele/veruscite-data](https://github.com/apwheele/veruscite-data). The `V1/` directory contains:
+All data for this report is public at [github.com/apwheele/veruscite-data](https://github.com/apwheele/veruscite-data). The `v1/` directory contains:
 
 - `ground_truth.csv` -- hand-labeled citations with `expected_status`
-- `extraction_run/` -- raw extraction outputs per model (kept: Gemini 3.1 Flash Lite, gpt-5.4-nano, gpt-5.6-luna, **2026-07-30**)
-- `checking_run/` -- raw checker outputs per model (Perplexity Gemini 3.1 Flash Lite, Perplexity openai/gpt-5.4-nano, direct Gemini 3.5 Flash Lite, OpenAI gpt-5.4-nano, OpenAI gpt-5.6-luna)
-- `manifest.json` -- run IDs used in this report (`default_extraction_model`: `gemini-3.1-flash-lite`)
+- `extraction_run/` -- raw extraction outputs per model
+- `checking_run/` -- raw checker outputs per model
+- `manifest.json` -- run IDs used in this report
 
 To regenerate this report:
 
