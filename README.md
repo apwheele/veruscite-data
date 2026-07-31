@@ -23,3 +23,12 @@ v1/
 src/                  # metrics helpers used by the report
 report.qmd            # Quarto source
 ```
+
+
+## Cite
+
+To cite this report, you can use:
+
+    Wheeler, A. (2026). VerusCite V1 Benchmark: Citation Verification Accuracy. CrimRxiv. Retrieved from https://github.com/apwheele/veruscite-data
+
+You can also see a persisitent identifier from the pre-print posted on [CrimRXiV](https://www.crimrxiv.com/pub/s63si1hl/release/1).
