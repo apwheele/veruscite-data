@@ -191,7 +191,7 @@ md_table(checking_table())
 
 For key metrics, there are a total of `{python} n_verified` correct citations in the corpus. So false positives (FP) rates are of those `{python} n_verified` correct citations, how many were falsely flagged by the tool. 
 
-The current FP rates for hallucinations are well under 1%, and vary between 2 to 7 total false positives across the different models in this corpus. Hallucination false positive are often attributable to idiosyncratic web search results. (The agentic tools often will return a response, even if the web search tool is currently inaccessible.) Using Perplexity web search generally results in the same accuracy as using Google or OpenAI web search.
+The current FP rates for hallucinations are well under 1%, and vary between 2 to 7 total false positives across the different models in this corpus. Hallucination false positives are often attributable to idiosyncratic web search results. (The agentic tools often will return a response, even if the web search tool is currently inaccessible.) Verified false-positive rates on Perplexity are broadly similar to the same model on the provider's own web-search stack, but **hallucination recall is not**: Perplexity-hosted OpenAI models (`openai/gpt-5.4-nano`, `openai/gpt-5.6-luna`) under-detect true hallucinations relative to OpenAI direct (see Recall below).
 
 For an example of a false positive hallucination in this particular run, my dissertation has the citation:
 
@@ -215,13 +215,13 @@ Many of the false positives are minor errors like this (and likely some of the l
 
 ### Recall
 
-Recall is the proportion of the true errors that are captured by the current tool. These are more variable across the different tools, with OpenAI models having greater recall (which comes with more false positives). Hallucination recall for the gemini models is currently ranges between 60 and 70%, whereas OpenAI luna is at 75%.
+Recall is the proportion of the true errors that are captured by the current tool. These are more variable across the different tools, with OpenAI models having greater recall (which comes with more false positives). Hallucination recall for the Gemini configurations is currently in the 60–70% range, whereas **OpenAI direct `gpt-5.6-luna` is at about 75%** (105/141). The same luna weights on **Perplexity** (`openai/gpt-5.6-luna`, 2026-08-01) drop to about **45%** hallucination recall (63/141), with not-verified recall still high (~88%) because many misses land in minor error or not found rather than verified. Perplexity `openai/gpt-5.4-nano` shows the same pattern even more sharply (33% hallucination recall). Provider web-search quality matters as much as the base model for this task.
 
-Minor error recall is similarly lower for Gemini (with the current model in production 3.5 flash-lite), at 52.7%. OpenAI has higher recall (often higher than 70%) for minor errors. Not found recall is near perfect across all models.
+Minor error recall is similarly lower for Gemini (with the current model in production 3.5 flash-lite), at 52.7%. OpenAI direct has higher recall (often higher than 70%) for minor errors. Not found recall is near perfect across all models.
 
 The final category, not verified, collapses the categories of minor error, hallucination, and not found. So if many hallucinations were classified into minor error, the direct recall rates would be low, but not verified (which will typically trigger a human review) would still be high. These are consistently over 80% across all model runs, with the exception of Gemini 3.5 flash lite (which is mostly due to low recall on minor errors).
 
-Given Gemini is currently much faster as well, this is the model chosen for production. The fallback model is currently OpenAI luna.
+Given Gemini is currently much faster as well, this is the model chosen for production. The fallback model is currently OpenAI luna (direct), not the Perplexity-hosted variant.
 
 ### Cost Breakdown for Citation Checking
 
@@ -237,7 +237,7 @@ costs["Per Paper (USD)"] = (costs["Total (USD)"] / 36).round(2)
 md_table(costs)
 ```
 
-The newer 3.5 flash lite model has resulted in lower token costs (despite being slightly more expensive than 3.1 flash-lite). One can see though across this corpus, costs are typically around 50 cents per paper to process, with often more than half of the cost being devoted to web search.
+The newer 3.5 flash lite model has resulted in lower token costs (despite being slightly more expensive than 3.1 flash-lite). One can see though across this corpus, costs are typically around 50 cents per paper to process, with often more than half of the cost being devoted to web search. Perplexity `openai/gpt-5.6-luna` lands near OpenAI direct luna on total cost (~$20 full corpus) despite cheaper Perplexity search ($5/1k vs OpenAI $10/1k in pricing tables used here): token spend is higher on the Perplexity run, so the search savings do not produce a cheaper overall check.
 
 ## Privacy
 
@@ -273,6 +273,6 @@ quarto render report.qmd
 
 ## AI Use Disclosure
 
-This paper was prepared with AI assistance. Drafting and earlier iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works by Andrew Wheeler (see @wheeler2026claude for that workflow). Updates for the 2026-07-30 extraction and checker refresh (including DOI link-annotation recovery notes, `gpt-5.6-luna` extract/check runs, and Perplexity `openai/gpt-5.4-nano`), speed/cost metrics, and this disclosure were assisted by **Grok 4.5** (xAI). Ground-truth labels, model-default decisions, and final review are human.
+This paper was prepared with AI assistance. Drafting and earlier iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works by Andrew Wheeler (see @wheeler2026claude for that workflow). Updates for the 2026-07-30 extraction and checker refresh (including DOI link-annotation recovery notes, `gpt-5.6-luna` extract/check runs, and Perplexity `openai/gpt-5.4-nano`), the 2026-08-01 Perplexity `openai/gpt-5.6-luna` checker run, speed/cost metrics, and this disclosure were assisted by **Grok 4.5** (xAI). Ground-truth labels, model-default decisions, and final review are human.
 
 ## References
