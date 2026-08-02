@@ -239,6 +239,38 @@ md_table(costs)
 
 The newer 3.5 flash lite model has resulted in lower token costs (despite being slightly more expensive than 3.1 flash-lite). One can see though across this corpus, costs are typically around 50 cents per paper to process, with often more than half of the cost being devoted to web search. Perplexity `openai/gpt-5.6-luna` lands near OpenAI direct luna on total cost (~$20 full corpus) despite cheaper Perplexity search ($5/1k vs OpenAI $10/1k in pricing tables used here): token spend is higher on the Perplexity run, so the search savings do not produce a cheaper overall check.
 
+### Population Estimates of Precision
+
+The ground truth sample I have collected is likely not representative of the overall population of scholarly papers. I have intentionally selected examples papers that have high rates of hallucinated citations. In @topaz2026fabricated and @zhao2026llmhallucinationswildlargescale, they estimate that pre-print servers and PubMed papers currently have rates of hallucinated citations ranging from 0.2% to almost 1.9%.
+
+So for an hypothetical example, if false positive rates for hallucinations in my tool are 0.5%, and the population prevalence rate of hallucinations are 1%, and my recall rates are 60%, what are the estimates for precision in the population? The estimated precision in the population will be only slightly over 50%. So out of 100 citations, 1 is a real hallucination, and 99 are not. Overall I capture that real hallucination 60% of the time, so 0.6 true positives. Of the 99 I have `0.99*0.005` false positives, so approximately 0.5 false positives. And then the precision is then `0.6/(0.5 + 0.6)`, which is slightly over 50% [@gigerenzer2011natural].
+
+If true rates of hallucinations are lower, my population precision will also be lower. Increasing recall could help, but even if recall is increased to 80% precision is still only 60%.
+
+As such, it will be necessary for humans to carefully review the output of the tool. If an article with a single hallucinated is identified, it does not for sure indicate that AI was used in the production of the bibliography. If multiple references are flagged as hallucinations though, it is more likely there are substantive issues with the work that a dutiful editor should investigate.
+
+Ultimately they overall rate of 1% hallucinations are a mixture of papers -- most scientists likely do a good job, but there are likely a few bad apples that use AI to generate whole slews of papers. And those individuals may have hallucination rates in over 20% of their citations [@walters2023fabrication]. Although with the improvement of the generative AI tools, that will likely decrease over time.
+
+## Comparison between my tool and other approaches
+
+For some differences between my work and @topaz2026fabricated and @zhao2026llmhallucinationswildlargescale, my tool can flag as hallucinations when authors or journals are clearly wrong. Both @topaz2026fabricated and @zhao2026llmhallucinationswildlargescale focus on title matches (and mismatches) only. The prior example I gave in @NBERw35482 would not be classified as a hallucination in either of these tools, as the title exists -- it just clearly swapped out an incorrect journal.
+
+Additionally both @topaz2026fabricated and @zhao2026llmhallucinationswildlargescale use google scholar as a secondary reference source. I do not consider this as valid, as I have personally seen google scholar reference hallucinated citations, see [this example of a hallucinated reference](https://scholar.google.com/scholar_lookup?title=Spatial%20analysis%20of%20crime%20patterns%20using%20GIS-based%20decision%20support%20tools&author=J.%20Smith&publication_year=2022&pages=125-148), the citation
+
+> [5] J. Smith, Spatial analysis of crime patterns using GIS-based decision support tools, J. Quant. Criminol. 38 (2) (2022) 125–148
+
+that is in @assen2026crime in my ground truth, and actually links to the (false) google scholar citation.
+
+These methods focus on title matches. So for example, @topaz2026fabricated give the example as a *not* hallucinated title:
+
+> For example, a reference listed as *Depression and anxiety in young adults with ID* corresponds to the real indexed title *Depression and anxiety symptoms during the transition to early adulthood for people with intellectual disabilities* and is probably a reference error, not a fabrication.
+
+My current system, while calling stochastic LLMs, reliably classifies this as a *minor error* (across all model permutations).
+
+Other current tools, like GPTZero or Reviewer3, do not publish how they exactly approach citation checking. While Reviewer3 lists a [reference set of metrics](https://reviewer3.com/evidence/benchmarks/references), they do not share the actual citations. (It appears these are simulated, as the @walters2023fabrication paper they cite has 636 citations, and Reviewer3's reference set only has 476 citations.)
+
+The articles additionally focus on peer reviewed literature, and do not evaluate hallucinations in non journal articles (grey literature). My benchmark includes the full corpus in the reference papers, including blog posts, working papers, datasets, technical reports, law cases, etc. I have included the not found category for the scenario where a citation cannot be reasonably identified from web based resources, but including these sources will likely increase false positive rates, as how they are even supposed to be correctly cited can be difficult to know exactly.
+
 ## Privacy
 
 VerusCite uses only zero data retention (ZDR) models from all providers. Uploaded documents are not used for model training by any third party.
@@ -273,6 +305,6 @@ quarto render report.qmd
 
 ## AI Use Disclosure
 
-This paper was prepared with AI assistance. Drafting and earlier iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works by Andrew Wheeler (see @wheeler2026claude for that workflow). Updates for the 2026-07-30 extraction and checker refresh (including DOI link-annotation recovery notes, `gpt-5.6-luna` extract/check runs, and Perplexity `openai/gpt-5.4-nano`), the 2026-08-01 Perplexity `openai/gpt-5.6-luna` checker run, speed/cost metrics, and this disclosure were assisted by **Grok 4.5** (xAI). Ground-truth labels, model-default decisions, and final review are human.
+This paper was prepared with AI assistance. Drafting and earlier iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works by Andrew Wheeler (see @wheeler2026claude for that workflow). Additional edits were done by **Grok 4.5** (xAI). Ground-truth labels, and final review are done by myself (Andrew P. Wheeler). All errors are my own.
 
 ## References

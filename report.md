@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-08-01
+2026-08-02
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -22,14 +22,19 @@ Andrew Wheeler
   - [<span class="toc-section-number">5.2</span> Recall](#recall)
   - [<span class="toc-section-number">5.3</span> Cost Breakdown for
     Citation Checking](#cost-breakdown-for-citation-checking)
-- [<span class="toc-section-number">6</span> Privacy](#privacy)
-- [<span class="toc-section-number">7</span> Limitations and Next
+  - [<span class="toc-section-number">5.4</span> Population Estimates of
+    Precision](#population-estimates-of-precision)
+- [<span class="toc-section-number">6</span> Comparison between my tool
+  and other
+  approaches](#comparison-between-my-tool-and-other-approaches)
+- [<span class="toc-section-number">7</span> Privacy](#privacy)
+- [<span class="toc-section-number">8</span> Limitations and Next
   Steps](#limitations-and-next-steps)
-- [<span class="toc-section-number">8</span>
+- [<span class="toc-section-number">9</span>
   Reproducibility](#reproducibility)
-- [<span class="toc-section-number">9</span> AI Use
+- [<span class="toc-section-number">10</span> AI Use
   Disclosure](#ai-use-disclosure)
-- [<span class="toc-section-number">10</span> References](#references)
+- [<span class="toc-section-number">11</span> References](#references)
 
 ## The Problem
 
@@ -160,12 +165,12 @@ Perplexity.
 
 The checker assigns each citation one of four statuses:
 
-| Status | Meaning |
-|----|----|
-| **Verified** | Citation confirmed to exist via CrossRef or web search |
-| **Minor Error** | Citation likely exists but has metadata discrepancies (wrong year, volume, pages) |
-| **Hallucination** | No evidence the cited work exists as described |
-| **Not Found** | Unable to confirm or deny – includes bare URL citations and paywalled/very recent works with insufficient search results |
+| Status            | Meaning                                                                                                                  |
+|-------------------|--------------------------------------------------------------------------------------------------------------------------|
+| **Verified**      | Citation confirmed to exist via CrossRef or web search                                                                   |
+| **Minor Error**   | Citation likely exists but has metadata discrepancies (wrong year, volume, pages)                                        |
+| **Hallucination** | No evidence the cited work exists as described                                                                           |
+| **Not Found**     | Unable to confirm or deny – includes bare URL citations and paywalled/very recent works with insufficient search results |
 
 Many citations have minor errors (perhaps on the magnitude of 5% in my
 personal assessment). These include many innocuous things that are
@@ -226,7 +231,7 @@ The V1 validation corpus contains **2288** hand-labeled citations across
 - GPTZero’s NeurIPS 2025 audit (GPTZero 2026)
 - Papers flagged by Reviewer3 (Reviewer3, n.d.)
 - A ChatGPT deep-research output where all 12 citations are fabricated
-  (Jacques et al. 2026)
+  (Jacques, Wheeler, and Gerstenfeld 2026)
 - Clean papers (my own dissertation excerpts, open-access criminology,
   PLoS ONE articles)
 - MDPI and preprint samples
@@ -259,20 +264,14 @@ individual references. The table below shows extraction accuracy against
 the ground truth. There are two types of errors that can occur, you can
 miss a reference, or the tool can add in a reference.
 
-<div id="tbl-extraction">
-
-Table 1: Extraction accuracy by model
-
 <div class="cell-output cell-output-display cell-output-markdown"
-execution_count="3">
+execution_count="8">
 
 | Model                 | Real | Correct | Missing | Extra | Rate (%) | Wall min | Docs/min | Cost |
 |:----------------------|-----:|--------:|--------:|------:|---------:|---------:|---------:|-----:|
 | gemini-3.1-flash-lite | 2288 |    2285 |       3 |     3 |     99.9 |      4.9 |      7.4 | 1.15 |
 | gpt-5.4-nano          | 2288 |    2285 |       3 |     4 |     99.9 |     12.2 |      3.0 | 0.88 |
 | gpt-5.6-luna          | 2288 |    2284 |       4 |     6 |     99.8 |      8.2 |      4.4 | 0.84 |
-
-</div>
 
 </div>
 
@@ -319,23 +318,17 @@ checking are done in independent benchmarks. So each of the 2288
 citations, it is independently run though the checking benchmark,
 swapping out the model used.
 
-<div id="tbl-checking">
-
-Table 2: Citation Checking accuracy by model/provider
-
 <div class="cell-output cell-output-display cell-output-markdown"
-execution_count="4">
+execution_count="9">
 
-| Model | Provider | FP Hall. | FP Minor | Hall. Recall | NV Recall |
-|:---|:---|---:|---:|---:|---:|
-| gemini-3.5-flash-lite | gemini | 0.1% (2) | 0.8% (15) | 63.1% (89/141) | 71.9% (286/398) |
-| google/gemini-3.1-flash-lite | perplexity | 0.4% (7) | 0.7% (13) | 69.5% (98/141) | 82.7% (329/398) |
-| gpt-5.4-nano | openai | 0.2% (3) | 2.2% (42) | 60.3% (85/141) | 88.4% (352/398) |
-| gpt-5.6-luna | openai | 0.2% (3) | 2.5% (47) | 74.5% (105/141) | 88.7% (353/398) |
-| openai/gpt-5.4-nano | perplexity | 0.4% (7) | 2.5% (47) | 33.3% (47/141) | 84.9% (338/398) |
-| openai/gpt-5.6-luna | perplexity | 0.2% (4) | 2.2% (41) | 44.7% (63/141) | 87.7% (349/398) |
-
-</div>
+| Model                        | Provider   | FP Hall. |  FP Minor |    Hall. Recall |       NV Recall |
+|:-----------------------------|:-----------|---------:|----------:|----------------:|----------------:|
+| gemini-3.5-flash-lite        | gemini     | 0.1% (2) | 0.8% (15) |  63.1% (89/141) | 71.9% (286/398) |
+| google/gemini-3.1-flash-lite | perplexity | 0.4% (7) | 0.7% (13) |  69.5% (98/141) | 82.7% (329/398) |
+| gpt-5.4-nano                 | openai     | 0.2% (3) | 2.2% (42) |  60.3% (85/141) | 88.4% (352/398) |
+| gpt-5.6-luna                 | openai     | 0.2% (3) | 2.5% (47) | 74.5% (105/141) | 88.7% (353/398) |
+| openai/gpt-5.4-nano          | perplexity | 0.4% (7) | 2.5% (47) |  33.3% (47/141) | 84.9% (338/398) |
+| openai/gpt-5.6-luna          | perplexity | 0.2% (4) | 2.2% (41) |  44.7% (63/141) | 87.7% (349/398) |
 
 </div>
 
@@ -453,23 +446,17 @@ caching does occur for OpenAI (although these costs do not include
 that), but it is relatively small (and the majority of token costs are
 output).
 
-<div id="tbl-cost">
-
-Table 3: Cost breakdown per full-corpus checker run (36 papers)
-
 <div class="cell-output cell-output-display cell-output-markdown"
-execution_count="5">
+execution_count="10">
 
-| Model | Provider | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) |
-|:---|:---|---:|---:|---:|---:|
-| gemini-3.5-flash-lite | gemini | 6.14 | 8.44 | 14.59 | 0.41 |
-| google/gemini-3.1-flash-lite | perplexity | 12.15 | 7.72 | 19.87 | 0.55 |
-| gpt-5.4-nano | openai | 7.17 | 16.28 | 23.45 | 0.65 |
-| gpt-5.6-luna | openai | 6.84 | 11.49 | 18.33 | 0.51 |
-| openai/gpt-5.4-nano | perplexity | 7.34 | 4.84 | 12.18 | 0.34 |
-| openai/gpt-5.6-luna | perplexity | 11.21 | 8.76 | 19.98 | 0.56 |
-
-</div>
+| Model                        | Provider   | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) |
+|:-----------------------------|:-----------|-----------------:|------------------:|------------:|----------------:|
+| gemini-3.5-flash-lite        | gemini     |             6.14 |              8.44 |       14.59 |            0.41 |
+| google/gemini-3.1-flash-lite | perplexity |            12.15 |              7.72 |       19.87 |            0.55 |
+| gpt-5.4-nano                 | openai     |             7.17 |             16.28 |       23.45 |            0.65 |
+| gpt-5.6-luna                 | openai     |             6.84 |             11.49 |       18.33 |            0.51 |
+| openai/gpt-5.4-nano          | perplexity |             7.34 |              4.84 |       12.18 |            0.34 |
+| openai/gpt-5.6-luna          | perplexity |            11.21 |              8.76 |       19.98 |            0.56 |
 
 </div>
 
@@ -482,6 +469,95 @@ on total cost (~\$20 full corpus) despite cheaper Perplexity search
 (\$5/1k vs OpenAI \$10/1k in pricing tables used here): token spend is
 higher on the Perplexity run, so the search savings do not produce a
 cheaper overall check.
+
+### Population Estimates of Precision
+
+The ground truth sample I have collected is likely not representative of
+the overall population of scholarly papers. I have intentionally
+selected examples papers that have high rates of hallucinated citations.
+In Topaz et al. (2026) and Zhao et al. (2026), they estimate that
+pre-print servers and PubMed papers currently have rates of hallucinated
+citations ranging from 0.2% to almost 1.9%.
+
+So for an hypothetical example, if false positive rates for
+hallucinations in my tool are 0.5%, and the population prevalence rate
+of hallucinations are 1%, and my recall rates are 60%, what are the
+estimates for precision in the population? The estimated precision in
+the population will be only slightly over 50%. So out of 100 citations,
+1 is a real hallucination, and 99 are not. Overall I capture that real
+hallucination 60% of the time, so 0.6 true positives. Of the 99 I have
+`0.99*0.005` false positives, so approximately 0.5 false positives. And
+then the precision is then `0.6/(0.5 + 0.6)`, which is slightly over 50%
+(**gigerenzer2011natural?**).
+
+If true rates of hallucinations are lower, my population precision will
+also be lower. Increasing recall could help, but even if recall is
+increased to 80% precision is still only 60%.
+
+As such, it will be necessary for humans to carefully review the output
+of the tool. If an article with a single hallucinated is identified, it
+does not for sure indicate that AI was used in the production of the
+bibliography. If multiple references are flagged as hallucinations
+though, it is more likely there are substantive issues with the work
+that a dutiful editor should investigate.
+
+Ultimately they overall rate of 1% hallucinations are a mixture of
+papers – most scientists likely do a good job, but there are likely a
+few bad apples that use AI to generate whole slews of papers. And those
+individuals may have hallucination rates in over 20% of their citations
+(**walters2023fabrication?**). Although with the improvement of the
+generative AI tools, that will likely decrease over time.
+
+## Comparison between my tool and other approaches
+
+For some differences between my work and Topaz et al. (2026) and Zhao et
+al. (2026), my tool can flag as hallucinations when authors or journals
+are clearly wrong. Both Topaz et al. (2026) and Zhao et al. (2026) focus
+on title matches (and mismatches) only. The prior example I gave in
+Canessa et al. (2026) would not be classified as a hallucination in
+either of these tools, as the title exists – it just clearly swapped out
+an incorrect journal.
+
+Additionally both Topaz et al. (2026) and Zhao et al. (2026) use google
+scholar as a secondary reference source. I do not consider this as
+valid, as I have personally seen google scholar reference hallucinated
+citations, see [this example of a hallucinated
+reference](https://scholar.google.com/scholar_lookup?title=Spatial%20analysis%20of%20crime%20patterns%20using%20GIS-based%20decision%20support%20tools&author=J.%20Smith&publication_year=2022&pages=125-148),
+the citation
+
+> \[5\] J. Smith, Spatial analysis of crime patterns using GIS-based
+> decision support tools, J. Quant. Criminol. 38 (2) (2022) 125–148
+
+that is in (**assen2026crime?**) in my ground truth, and actually links
+to the (false) google scholar citation.
+
+These methods focus on title matches. So for example, Topaz et al.
+(2026) give the example as a *not* hallucinated title:
+
+> For example, a reference listed as *Depression and anxiety in young
+> adults with ID* corresponds to the real indexed title *Depression and
+> anxiety symptoms during the transition to early adulthood for people
+> with intellectual disabilities* and is probably a reference error, not
+> a fabrication.
+
+My current system, while calling stochastic LLMs, reliably classifies
+this as a *minor error* (across all model permutations).
+
+Other current tools, like GPTZero or Reviewer3, do not publish how they
+exactly approach citation checking. While Reviewer3 lists a [reference
+set of metrics](https://reviewer3.com/evidence/benchmarks/references),
+they do not share the actual citations. (It appears these are simulated,
+as the (**walters2023fabrication?**) paper they cite has 636 citations,
+and Reviewer3’s reference set only has 476 citations.)
+
+The articles additionally focus on peer reviewed literature, and do not
+evaluate hallucinations in non journal articles (grey literature). My
+benchmark includes the full corpus in the reference papers, including
+blog posts, working papers, datasets, technical reports, law cases, etc.
+I have included the not found category for the scenario where a citation
+cannot be reasonably identified from web based resources, but including
+these sources will likely increase false positive rates, as how they are
+even supposed to be correctly cited can be difficult to know exactly.
 
 ## Privacy
 
@@ -536,38 +612,37 @@ quarto render report.qmd
 
 This paper was prepared with AI assistance. Drafting and earlier
 iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works
-by Andrew Wheeler (see A. P. Wheeler (2026) for that workflow). Updates
-for the 2026-07-30 extraction and checker refresh (including DOI
-link-annotation recovery notes, `gpt-5.6-luna` extract/check runs, and
-Perplexity `openai/gpt-5.4-nano`), the 2026-08-01 Perplexity
-`openai/gpt-5.6-luna` checker run, speed/cost metrics, and this
-disclosure were assisted by **Grok 4.5** (xAI). Ground-truth labels,
-model-default decisions, and final review are human.
+by Andrew Wheeler (see A. P. Wheeler (2026) for that workflow).
+Additional edits were done by **Grok 4.5** (xAI). Ground-truth labels,
+and final review are done by myself (Andrew P. Wheeler). All errors are
+my own.
 
 ## References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-NBERw35482" class="csl-entry">
 
-Canessa, Stella, Gordon B Dahl, Anna Hasselqvist, et al. 2026. *Life
-After Divorce: Effects of Joint Custody on Parents and Children*.
-Working Paper No. 35482. Working Paper Series. National Bureau of
+Canessa, Stella, Gordon B Dahl, Anna Hasselqvist, Costas Meghir, Susan
+Niknami, Mårten Palme, Helmut Rainer, Olof Rosenqvist, and Pengpeng
+Xiao. 2026. “Life After Divorce: Effects of Joint Custody on Parents and
+Children.” Working Paper 35482. Working Paper Series. National Bureau of
 Economic Research. <https://doi.org/10.3386/w35482>.
 
 </div>
 
 <div id="ref-emi2024falsepositives" class="csl-entry">
 
-Emi, Bradley. 2024. *All about False Positives in AI Detectors*.
+Emi, Bradley. 2024. “All about False Positives in AI Detectors.”
 <https://www.pangram.com/blog/all-about-false-positives-in-ai-detectors>.
 
 </div>
 
 <div id="ref-gptzero2026neurips" class="csl-entry">
 
-GPTZero. 2026. *GPTZero Finds 100 New Hallucinations in NeurIPS 2025
-Accepted Papers*. <https://gptzero.me/news/neurips/>.
+GPTZero. 2026. “GPTZero Finds 100 New Hallucinations in NeurIPS 2025
+Accepted Papers.” <https://gptzero.me/news/neurips/>.
 
 </div>
 
@@ -591,7 +666,7 @@ Asia Regions: Insights from 2022–2024 DHS Datasets.” *PLOS ONE* 21 (7):
 
 <div id="ref-reviewer3" class="csl-entry">
 
-Reviewer3. n.d. *Reviewer3: Live arXiv Reference Checking*.
+Reviewer3. n.d. “Reviewer3: Live arXiv Reference Checking.”
 <https://reviewer3.com/live/arxiv>.
 
 </div>
@@ -614,7 +689,7 @@ Guide for Analysts with Python*. Crime De-Coder.
 
 <div id="ref-wheeler2026claude" class="csl-entry">
 
-Wheeler, Andrew P. 2026. *Using Claude Code to Help Me Write*.
+Wheeler, Andrew P. 2026. “Using Claude Code to Help Me Write.”
 <https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/>.
 
 </div>
@@ -622,8 +697,8 @@ Wheeler, Andrew P. 2026. *Using Claude Code to Help Me Write*.
 <div id="ref-zhao2026llmhallucinationswildlargescale" class="csl-entry">
 
 Zhao, Zhenyue, Yihe Wang, Toby Stuart, Mathijs De Vaan, Paul Ginsparg,
-and Yian Yin. 2026. *LLM Hallucinations in the Wild: Large-Scale
-Evidence from Non-Existent Citations*.
+and Yian Yin. 2026. “LLM Hallucinations in the Wild: Large-Scale
+Evidence from Non-Existent Citations.”
 <https://arxiv.org/abs/2605.07723>.
 
 </div>
