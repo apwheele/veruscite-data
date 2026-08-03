@@ -91,7 +91,8 @@ can make informed decisions quickly.
 Similar to work in Pangram, I believe that it is necessary to have the
 tool have as few of false positives as possible (Emi 2024). While this
 report will show that those false positives are not zero (any realistic
-tool should report a certain error rate), I believe
+tool should report a certain error rate), the design still prioritizes
+keeping them as low as possible.
 
 ## Pipeline Architecture
 
@@ -326,21 +327,31 @@ checking are done in independent benchmarks. So each of the 2288
 citations, it is independently run though the checking benchmark,
 swapping out the model used.
 
+Where the same model/provider appears more than once, those are
+**independent full-corpus re-runs** (different dates), not duplicates of
+one output. Repeat runs are intentional: agentic web search and LLM
+classification are stochastic, so multiple runs show run-to-run variance
+in false positives, recall, cost, and wall time. Accuracy tables include
+a **Date** column so repeats are distinguishable.
+
 <div id="tbl-checking">
 
-Table 2: Citation Checking accuracy by model/provider
+Table 2: Citation Checking accuracy by model/provider (repeat rows are
+independent re-runs)
 
 <div class="cell-output cell-output-display cell-output-markdown"
 execution_count="4">
 
-| Model | Provider | FP Hall. | FP Minor | Hall. Recall | NV Recall |
-|:---|:---|---:|---:|---:|---:|
-| gemini-3.5-flash-lite | gemini | 0.1% (2) | 0.8% (15) | 63.1% (89/141) | 71.9% (286/398) |
-| google/gemini-3.1-flash-lite | perplexity | 0.4% (7) | 0.7% (13) | 69.5% (98/141) | 82.7% (329/398) |
-| gpt-5.4-nano | openai | 0.2% (3) | 2.2% (42) | 60.3% (85/141) | 88.4% (352/398) |
-| gpt-5.6-luna | openai | 0.2% (3) | 2.5% (47) | 74.5% (105/141) | 88.7% (353/398) |
-| openai/gpt-5.4-nano | perplexity | 0.4% (7) | 2.5% (47) | 33.3% (47/141) | 84.9% (338/398) |
-| openai/gpt-5.6-luna | perplexity | 0.2% (4) | 2.2% (41) | 44.7% (63/141) | 87.7% (349/398) |
+| Model | Provider | Date | FP Hall. | FP Minor | Hall. Recall | NV Recall |
+|:---|:---|:---|---:|---:|---:|---:|
+| gemini-3.5-flash-lite | gemini | 2026-07-29 | 0.1% (2) | 0.8% (15) | 63.1% (89/141) | 71.9% (286/398) |
+| google/gemini-3.1-flash-lite | perplexity | 2026-07-30 | 0.4% (7) | 0.7% (13) | 69.5% (98/141) | 82.7% (329/398) |
+| google/gemini-3.1-flash-lite | perplexity | 2026-08-03 | 0.4% (7) | 1.2% (22) | 64.5% (91/141) | 80.2% (319/398) |
+| gpt-5.4-nano | openai | 2026-07-30 | 0.2% (3) | 2.2% (42) | 60.3% (85/141) | 88.4% (352/398) |
+| gpt-5.6-luna | openai | 2026-07-30 | 0.2% (3) | 2.5% (47) | 74.5% (105/141) | 88.7% (353/398) |
+| gpt-5.6-luna | openai | 2026-08-03 | 0.1% (2) | 2.8% (52) | 73.8% (104/141) | 89.2% (355/398) |
+| openai/gpt-5.4-nano | perplexity | 2026-07-30 | 0.4% (7) | 2.5% (47) | 33.3% (47/141) | 84.9% (338/398) |
+| openai/gpt-5.6-luna | perplexity | 2026-08-01 | 0.2% (4) | 2.2% (41) | 44.7% (63/141) | 87.7% (349/398) |
 
 </div>
 
@@ -354,7 +365,8 @@ citations, how many were falsely flagged by the tool.
 
 The current FP rates for hallucinations are well under 1%, and vary
 between 2 to 7 total false positives across the different models in this
-corpus. Hallucination false positives are often attributable to
+corpus (and can shift by a few counts between re-runs of the same
+model). Hallucination false positives are often attributable to
 idiosyncratic web search results. (The agentic tools often will return a
 response, even if the web search tool is currently inaccessible.)
 Verified false-positive rates on Perplexity are broadly similar to the
@@ -419,14 +431,24 @@ Recall is the proportion of the true errors that are captured by the
 current tool. These are more variable across the different tools, with
 OpenAI models having greater recall (which comes with more false
 positives). Hallucination recall for the Gemini configurations is
-currently in the 60–70% range, whereas **OpenAI direct `gpt-5.6-luna` is
-at about 75%** (105/141). The same luna weights on **Perplexity**
-(`openai/gpt-5.6-luna`, 2026-08-01) drop to about **45%** hallucination
-recall (63/141), with not-verified recall still high (~88%) because many
-misses land in minor error or not found rather than verified. Perplexity
+currently in the **60–70%** range. Across two independent full-corpus
+runs, **OpenAI direct `gpt-5.6-luna`** lands at about **74–75%**
+(104–105/141), while production **Perplexity
+`google/gemini-3.1-flash-lite`** lands at about **65–70%** (91–98/141).
+The same luna weights on **Perplexity** (`openai/gpt-5.6-luna`,
+2026-08-01) drop to about **45%** hallucination recall (63/141), with
+not-verified recall still high (~88%) because many misses land in minor
+error or not found rather than verified. Perplexity
 `openai/gpt-5.4-nano` shows the same pattern even more sharply (33%
 hallucination recall). Provider web-search quality matters as much as
 the base model for this task.
+
+That re-run spread is the main reason tables keep multiple rows for the
+same model: FP minor for Perplexity 3.1 flash-lite moved from 0.7% (13)
+to 1.2% (22) between the July and August runs, while OpenAI luna
+hallucination FP stayed at 0.1–0.2% and hallucination recall stayed near
+74%. Cost and wall time also drift with provider load and search volume
+(see the cost table).
 
 Minor error recall is similarly lower for Gemini direct 3.5 flash-lite,
 at 52.7%. OpenAI direct has higher recall (often higher than 70%) for
@@ -454,9 +476,9 @@ stack caps searches at **1,500 per day across all tiers**, which is too
 low for multi-user production load (a single large paper can consume
 dozens of searches after Crossref misses). Perplexity does not impose
 that daily search cap, so agentic verification can keep running under
-concurrent documents. On this corpus, Perplexity
-`google/gemini-3.1-flash-lite` also has strong precision and solid
-not-verified recall (~83%), with hallucination FP still under 0.5%.
+concurrent documents. On this corpus, two Perplexity
+`google/gemini-3.1-flash-lite` re-runs both keep hallucination FP under
+0.5% and not-verified recall around **80–83%**.
 
 Gemini **direct** 3.5 flash-lite remains the fastest and cheapest
 full-corpus configuration in the table below (~26s wall-equivalent per
@@ -465,13 +487,13 @@ makes it unsuitable as the default production path. It is retained in
 the benchmark for comparison.
 
 **Why OpenAI luna as backup.** Direct OpenAI `gpt-5.6-luna` is the
-fallback when Perplexity is down or returns persistent errors. It has
-the highest hallucination recall among configurations tested (~75%) at
-similar cost to the Perplexity primary (~\$0.51/paper). The
-Perplexity-hosted OpenAI variants (`openai/gpt-5.4-nano`,
-`openai/gpt-5.6-luna`) are **not** used as production fallback: they
-under-detect true hallucinations relative to OpenAI direct (see Recall
-above).
+fallback when Perplexity is down or returns persistent errors. Across
+two re-runs it has the highest hallucination recall among configurations
+tested (**~74–75%**) at similar cost to the Perplexity primary
+(**~\$0.51/paper**). The Perplexity-hosted OpenAI variants
+(`openai/gpt-5.4-nano`, `openai/gpt-5.6-luna`) are **not** used as
+production fallback: they under-detect true hallucinations relative to
+OpenAI direct (see Recall above).
 
 Extraction production remains Gemini 3.1 Flash Lite (Google) with OpenAI
 fallback, as described in the Extraction Results section.
@@ -496,19 +518,21 @@ output).
 <div id="tbl-cost">
 
 Table 3: Cost and runtime breakdown per full-corpus checker run (36
-papers)
+papers; repeat rows are independent re-runs)
 
 <div class="cell-output cell-output-display cell-output-markdown"
 execution_count="5">
 
-| Model | Provider | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) | Sec/paper | Wall min |
-|:---|:---|---:|---:|---:|---:|---:|---:|
-| gemini-3.5-flash-lite | gemini | 6.14 | 8.44 | 14.59 | 0.41 | 128.9 | 15.7 |
-| google/gemini-3.1-flash-lite | perplexity | 12.15 | 7.72 | 19.87 | 0.55 | 406.2 | 51.0 |
-| gpt-5.4-nano | openai | 7.17 | 16.28 | 23.45 | 0.65 | 445.5 | 54.4 |
-| gpt-5.6-luna | openai | 6.84 | 11.49 | 18.33 | 0.51 | 328.6 | 39.9 |
-| openai/gpt-5.4-nano | perplexity | 7.34 | 4.84 | 12.18 | 0.34 | 243.3 | 29.7 |
-| openai/gpt-5.6-luna | perplexity | 11.21 | 8.76 | 19.98 | 0.56 | 291.6 | 35.7 |
+| Model | Provider | Date | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) | Sec/paper | Wall min |
+|:---|:---|:---|---:|---:|---:|---:|---:|---:|
+| gemini-3.5-flash-lite | gemini | 2026-07-29 | 6.14 | 8.44 | 14.59 | 0.41 | 128.9 | 15.7 |
+| google/gemini-3.1-flash-lite | perplexity | 2026-07-30 | 12.15 | 7.72 | 19.87 | 0.55 | 406.2 | 51.0 |
+| google/gemini-3.1-flash-lite | perplexity | 2026-08-03 | 13.43 | 8.94 | 22.36 | 0.62 | 448.7 | 57.9 |
+| gpt-5.4-nano | openai | 2026-07-30 | 7.17 | 16.28 | 23.45 | 0.65 | 445.5 | 54.4 |
+| gpt-5.6-luna | openai | 2026-07-30 | 6.84 | 11.49 | 18.33 | 0.51 | 328.6 | 39.9 |
+| gpt-5.6-luna | openai | 2026-08-03 | 6.9 | 11.53 | 18.43 | 0.51 | 386.2 | 47.1 |
+| openai/gpt-5.4-nano | perplexity | 2026-07-30 | 7.34 | 4.84 | 12.18 | 0.34 | 243.3 | 29.7 |
+| openai/gpt-5.6-luna | perplexity | 2026-08-01 | 11.21 | 8.76 | 19.98 | 0.56 | 291.6 | 35.7 |
 
 </div>
 
@@ -517,20 +541,23 @@ execution_count="5">
 **Sec/paper** is the mean document wall time from each run’s
 `document_metrics.csv` (how long one paper takes end-to-end under the
 batch concurrency settings). **Wall min** is full-corpus elapsed time
-with up to five documents in parallel.
+with up to five documents in parallel. Repeat rows again show variance:
+Perplexity 3.1 flash-lite was about **\$19.87 / 51 wall min** in one run
+and **\$22.36 / 58 wall min** in another; OpenAI direct luna was about
+**\$18.3–\$18.4** with wall time **40–47 min**.
 
 The newer Gemini-direct 3.5 flash lite model has lower token costs and
 the shortest per-paper times, but is not the production primary for the
 web-search quota reasons above. Across this corpus, costs are typically
 around 50 cents per paper, with often more than half of the cost devoted
 to web search. Production primary (Perplexity 3.1 flash lite) is about
-**\$0.55/paper** and **~7 minutes mean per paper** on this batch setup;
-OpenAI direct luna fallback is about **\$0.51/paper** and **~5.5 minutes
-mean per paper**. Perplexity `openai/gpt-5.6-luna` lands near OpenAI
-direct luna on total cost (~\$20 full corpus) despite cheaper Perplexity
-search (\$5/1k vs OpenAI \$10/1k in pricing tables used here): token
-spend is higher on the Perplexity run, so the search savings do not
-produce a cheaper overall check.
+**\$0.55–\$0.62/paper** and roughly **7 minutes mean per paper** on this
+batch setup; OpenAI direct luna fallback is about **\$0.51/paper** and
+**~5.5–6 minutes mean per paper**. Perplexity `openai/gpt-5.6-luna`
+lands near OpenAI direct luna on total cost (~\$20 full corpus) despite
+cheaper Perplexity search (\$5/1k vs OpenAI \$10/1k in pricing tables
+used here): token spend is higher on the Perplexity run, so the search
+savings do not produce a cheaper overall check.
 
 ### Population Estimates of Precision
 
@@ -675,11 +702,12 @@ quarto render report.qmd
 This paper was prepared with AI assistance. Drafting and earlier
 iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works
 by Andrew Wheeler (see A. P. Wheeler (2026) for that workflow).
-Additional edits, including the Current Production Configuration section
-(Perplexity `google/gemini-3.1-flash-lite` primary, OpenAI
-`gpt-5.6-luna` fallback, and per-paper runtime in the cost table), were
-assisted by **Grok 4.5** (xAI). Ground-truth labels and final review are
-done by myself (Andrew P. Wheeler). All errors are my own.
+Additional edits, including the Current Production Configuration
+section, multi-run variance notes for independent checker re-runs
+(Perplexity `google/gemini-3.1-flash-lite` and OpenAI `gpt-5.6-luna`),
+and per-paper runtime in the cost table, were assisted by **Grok 4.5**
+(xAI). Ground-truth labels and final review are done by myself (Andrew
+P. Wheeler). All errors are my own.
 
 ## References
 

@@ -127,11 +127,20 @@ def extraction_table() -> pd.DataFrame:
 
 
 def checking_table() -> pd.DataFrame:
-    """Formatted checker results table (key metrics only)."""
+    """Formatted checker results table (key metrics only).
+
+    Includes a Date column so repeat runs of the same model/provider can be
+    compared (run-to-run variance).
+    """
     df = checking_report(V1_DIR)
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["date_run"], utc=True, errors="coerce").dt.strftime(
+        "%Y-%m-%d"
+    )
     cols = [
         "model",
         "provider",
+        "date",
         "verified_fp_hallucination",
         "verified_fp_minor_error",
         "hallucination_recall",
@@ -142,6 +151,7 @@ def checking_table() -> pd.DataFrame:
     out.columns = [
         "Model",
         "Provider",
+        "Date",
         "FP Hall.",
         "FP Minor",
         "Hall. Recall",
@@ -160,6 +170,10 @@ def checking_full_table() -> pd.DataFrame:
 def cost_comparison_table() -> pd.DataFrame:
     """Cost breakdown for checker runs, including wall time per paper."""
     df = checking_report(V1_DIR)
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["date_run"], utc=True, errors="coerce").dt.strftime(
+        "%Y-%m-%d"
+    )
     df["token_cost_usd"] = df["token_cost_usd"].round(2)
     df["web_search_cost_usd"] = df["web_search_cost_usd"].round(2)
     df["cost_usd"] = df["cost_usd"].round(2)
@@ -190,6 +204,7 @@ def cost_comparison_table() -> pd.DataFrame:
     cols = [
         "model",
         "provider",
+        "date",
         "token_cost_usd",
         "web_search_cost_usd",
         "cost_usd",
@@ -201,6 +216,7 @@ def cost_comparison_table() -> pd.DataFrame:
     out.columns = [
         "Model",
         "Provider",
+        "Date",
         "Token Cost (USD)",
         "Search Cost (USD)",
         "Total (USD)",

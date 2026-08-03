@@ -1,6 +1,6 @@
 {
   "version": "V1",
-  "created_at": "2026-08-01T17:18:15.805096+00:00",
+  "created_at": "2026-08-03T15:29:57.749978+00:00",
   "pdf_count": 36,
   "ground_truth": "ground_truth.csv",
   "extraction_runs": [
@@ -14,6 +14,8 @@
     "gpt-5.4-nano_2026-07-30T162218Z",
     "gpt-5.6-luna_2026-07-30T183257Z",
     "openai__gpt-5.4-nano_2026-07-30T182506Z",
-    "openai__gpt-5.6-luna_2026-08-01T162154Z"
+    "openai__gpt-5.6-luna_2026-08-01T162154Z",
+    "google__gemini-3.1-flash-lite_2026-08-03T142706Z",
+    "gpt-5.6-luna_2026-08-03T143429Z"
   ]
 }
