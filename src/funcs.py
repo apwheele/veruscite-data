@@ -158,14 +158,56 @@ def checking_full_table() -> pd.DataFrame:
 
 
 def cost_comparison_table() -> pd.DataFrame:
-    """Cost breakdown for checker runs."""
+    """Cost breakdown for checker runs, including wall time per paper."""
     df = checking_report(V1_DIR)
     df["token_cost_usd"] = df["token_cost_usd"].round(2)
     df["web_search_cost_usd"] = df["web_search_cost_usd"].round(2)
     df["cost_usd"] = df["cost_usd"].round(2)
-    cols = ["model", "provider", "token_cost_usd", "web_search_cost_usd", "cost_usd"]
+
+    n_docs = 36
+    # Prefer mean document elapsed from document_metrics (true per-paper runtime).
+    # Fall back to full-corpus wall / n_docs if metrics are missing.
+    sec_per_paper: list[float | None] = []
+    for run_id in df["run_id"]:
+        metrics_path = V1_DIR / "checking_run" / str(run_id) / "document_metrics.csv"
+        if metrics_path.is_file():
+            metrics = pd.read_csv(metrics_path)
+            if "elapsed_seconds" in metrics.columns and not metrics.empty:
+                sec_per_paper.append(round(float(metrics["elapsed_seconds"].mean()), 1))
+                continue
+        wall = df.loc[df["run_id"] == run_id, "wall_elapsed_seconds"]
+        if not wall.empty and pd.notna(wall.iloc[0]):
+            sec_per_paper.append(round(float(wall.iloc[0]) / n_docs, 1))
+        else:
+            sec_per_paper.append(None)
+    df["sec_per_paper"] = sec_per_paper
+    df["per_paper_usd"] = (df["cost_usd"] / n_docs).round(2)
+    if "wall_elapsed_seconds" in df.columns:
+        df["wall_min"] = (df["wall_elapsed_seconds"] / 60.0).round(1)
+    else:
+        df["wall_min"] = pd.NA
+
+    cols = [
+        "model",
+        "provider",
+        "token_cost_usd",
+        "web_search_cost_usd",
+        "cost_usd",
+        "per_paper_usd",
+        "sec_per_paper",
+        "wall_min",
+    ]
     out = df[cols].copy()
-    out.columns = ["Model", "Provider", "Token Cost (USD)", "Search Cost (USD)", "Total (USD)"]
+    out.columns = [
+        "Model",
+        "Provider",
+        "Token Cost (USD)",
+        "Search Cost (USD)",
+        "Total (USD)",
+        "Per Paper (USD)",
+        "Sec/paper",
+        "Wall min",
+    ]
     return out
 
 

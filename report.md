@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-08-02
+2026-08-03
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -20,9 +20,11 @@ Andrew Wheeler
   - [<span class="toc-section-number">5.1</span> False
     Positives](#false-positives)
   - [<span class="toc-section-number">5.2</span> Recall](#recall)
-  - [<span class="toc-section-number">5.3</span> Cost Breakdown for
+  - [<span class="toc-section-number">5.3</span> Current Production
+    Configuration](#current-production-configuration)
+  - [<span class="toc-section-number">5.4</span> Cost Breakdown for
     Citation Checking](#cost-breakdown-for-citation-checking)
-  - [<span class="toc-section-number">5.4</span> Population Estimates of
+  - [<span class="toc-section-number">5.5</span> Population Estimates of
     Precision](#population-estimates-of-precision)
 - [<span class="toc-section-number">6</span> Comparison between my tool
   and other
@@ -165,12 +167,12 @@ Perplexity.
 
 The checker assigns each citation one of four statuses:
 
-| Status            | Meaning                                                                                                                  |
-|-------------------|--------------------------------------------------------------------------------------------------------------------------|
-| **Verified**      | Citation confirmed to exist via CrossRef or web search                                                                   |
-| **Minor Error**   | Citation likely exists but has metadata discrepancies (wrong year, volume, pages)                                        |
-| **Hallucination** | No evidence the cited work exists as described                                                                           |
-| **Not Found**     | Unable to confirm or deny – includes bare URL citations and paywalled/very recent works with insufficient search results |
+| Status | Meaning |
+|----|----|
+| **Verified** | Citation confirmed to exist via CrossRef or web search |
+| **Minor Error** | Citation likely exists but has metadata discrepancies (wrong year, volume, pages) |
+| **Hallucination** | No evidence the cited work exists as described |
+| **Not Found** | Unable to confirm or deny – includes bare URL citations and paywalled/very recent works with insufficient search results |
 
 Many citations have minor errors (perhaps on the magnitude of 5% in my
 personal assessment). These include many innocuous things that are
@@ -231,7 +233,7 @@ The V1 validation corpus contains **2288** hand-labeled citations across
 - GPTZero’s NeurIPS 2025 audit (GPTZero 2026)
 - Papers flagged by Reviewer3 (Reviewer3, n.d.)
 - A ChatGPT deep-research output where all 12 citations are fabricated
-  (Jacques, Wheeler, and Gerstenfeld 2026)
+  (Jacques et al. 2026)
 - Clean papers (my own dissertation excerpts, open-access criminology,
   PLoS ONE articles)
 - MDPI and preprint samples
@@ -264,14 +266,20 @@ individual references. The table below shows extraction accuracy against
 the ground truth. There are two types of errors that can occur, you can
 miss a reference, or the tool can add in a reference.
 
+<div id="tbl-extraction">
+
+Table 1: Extraction accuracy by model
+
 <div class="cell-output cell-output-display cell-output-markdown"
-execution_count="8">
+execution_count="3">
 
 | Model                 | Real | Correct | Missing | Extra | Rate (%) | Wall min | Docs/min | Cost |
 |:----------------------|-----:|--------:|--------:|------:|---------:|---------:|---------:|-----:|
 | gemini-3.1-flash-lite | 2288 |    2285 |       3 |     3 |     99.9 |      4.9 |      7.4 | 1.15 |
 | gpt-5.4-nano          | 2288 |    2285 |       3 |     4 |     99.9 |     12.2 |      3.0 | 0.88 |
 | gpt-5.6-luna          | 2288 |    2284 |       4 |     6 |     99.8 |      8.2 |      4.4 | 0.84 |
+
+</div>
 
 </div>
 
@@ -318,17 +326,23 @@ checking are done in independent benchmarks. So each of the 2288
 citations, it is independently run though the checking benchmark,
 swapping out the model used.
 
-<div class="cell-output cell-output-display cell-output-markdown"
-execution_count="9">
+<div id="tbl-checking">
 
-| Model                        | Provider   | FP Hall. |  FP Minor |    Hall. Recall |       NV Recall |
-|:-----------------------------|:-----------|---------:|----------:|----------------:|----------------:|
-| gemini-3.5-flash-lite        | gemini     | 0.1% (2) | 0.8% (15) |  63.1% (89/141) | 71.9% (286/398) |
-| google/gemini-3.1-flash-lite | perplexity | 0.4% (7) | 0.7% (13) |  69.5% (98/141) | 82.7% (329/398) |
-| gpt-5.4-nano                 | openai     | 0.2% (3) | 2.2% (42) |  60.3% (85/141) | 88.4% (352/398) |
-| gpt-5.6-luna                 | openai     | 0.2% (3) | 2.5% (47) | 74.5% (105/141) | 88.7% (353/398) |
-| openai/gpt-5.4-nano          | perplexity | 0.4% (7) | 2.5% (47) |  33.3% (47/141) | 84.9% (338/398) |
-| openai/gpt-5.6-luna          | perplexity | 0.2% (4) | 2.2% (41) |  44.7% (63/141) | 87.7% (349/398) |
+Table 2: Citation Checking accuracy by model/provider
+
+<div class="cell-output cell-output-display cell-output-markdown"
+execution_count="4">
+
+| Model | Provider | FP Hall. | FP Minor | Hall. Recall | NV Recall |
+|:---|:---|---:|---:|---:|---:|
+| gemini-3.5-flash-lite | gemini | 0.1% (2) | 0.8% (15) | 63.1% (89/141) | 71.9% (286/398) |
+| google/gemini-3.1-flash-lite | perplexity | 0.4% (7) | 0.7% (13) | 69.5% (98/141) | 82.7% (329/398) |
+| gpt-5.4-nano | openai | 0.2% (3) | 2.2% (42) | 60.3% (85/141) | 88.4% (352/398) |
+| gpt-5.6-luna | openai | 0.2% (3) | 2.5% (47) | 74.5% (105/141) | 88.7% (353/398) |
+| openai/gpt-5.4-nano | perplexity | 0.4% (7) | 2.5% (47) | 33.3% (47/141) | 84.9% (338/398) |
+| openai/gpt-5.6-luna | perplexity | 0.2% (4) | 2.2% (41) | 44.7% (63/141) | 87.7% (349/398) |
+
+</div>
 
 </div>
 
@@ -372,9 +386,11 @@ out of sample data. But given the stochastic nature of LLMs, some errors
 will ultimately occur.
 
 FP rates for minor errors are more prevalent, being close to 1% for the
-Gemini models, but over 2% for the OpenAI models. The current tool in
-production uses Gemini 3.5 flash-lite (Perplexity is currently having
-issues consistently calling 3.5 flash-lite).
+Gemini models, but over 2% for the OpenAI models. Production defaults
+are summarized in [Current Production
+Configuration](#current-production-configuration): primary checker is
+**Perplexity-hosted Gemini 3.1 Flash Lite**, with **OpenAI direct
+`gpt-5.6-luna`** as the fallback.
 
 The general approach I took was to evaluate when both OpenAI and Google
 models returned false positives. While these do happen in the corpus, in
@@ -412,10 +428,9 @@ misses land in minor error or not found rather than verified. Perplexity
 hallucination recall). Provider web-search quality matters as much as
 the base model for this task.
 
-Minor error recall is similarly lower for Gemini (with the current model
-in production 3.5 flash-lite), at 52.7%. OpenAI direct has higher recall
-(often higher than 70%) for minor errors. Not found recall is near
-perfect across all models.
+Minor error recall is similarly lower for Gemini direct 3.5 flash-lite,
+at 52.7%. OpenAI direct has higher recall (often higher than 70%) for
+minor errors. Not found recall is near perfect across all models.
 
 The final category, not verified, collapses the categories of minor
 error, hallucination, and not found. So if many hallucinations were
@@ -425,9 +440,41 @@ be high. These are consistently over 80% across all model runs, with the
 exception of Gemini 3.5 flash lite (which is mostly due to low recall on
 minor errors).
 
-Given Gemini is currently much faster as well, this is the model chosen
-for production. The fallback model is currently OpenAI luna (direct),
-not the Perplexity-hosted variant.
+### Current Production Configuration
+
+Production VerusCite uses the following defaults for citation checking:
+
+| Role                 | Provider        | Model                          |
+|----------------------|-----------------|--------------------------------|
+| **Primary checker**  | Perplexity      | `google/gemini-3.1-flash-lite` |
+| **Fallback checker** | OpenAI (direct) | `gpt-5.6-luna`                 |
+
+**Why Perplexity 3.1 Flash Lite as primary.** Google’s Gemini web-search
+stack caps searches at **1,500 per day across all tiers**, which is too
+low for multi-user production load (a single large paper can consume
+dozens of searches after Crossref misses). Perplexity does not impose
+that daily search cap, so agentic verification can keep running under
+concurrent documents. On this corpus, Perplexity
+`google/gemini-3.1-flash-lite` also has strong precision and solid
+not-verified recall (~83%), with hallucination FP still under 0.5%.
+
+Gemini **direct** 3.5 flash-lite remains the fastest and cheapest
+full-corpus configuration in the table below (~26s wall-equivalent per
+paper under concurrent batching, ~\$0.41/paper), but the search quota
+makes it unsuitable as the default production path. It is retained in
+the benchmark for comparison.
+
+**Why OpenAI luna as backup.** Direct OpenAI `gpt-5.6-luna` is the
+fallback when Perplexity is down or returns persistent errors. It has
+the highest hallucination recall among configurations tested (~75%) at
+similar cost to the Perplexity primary (~\$0.51/paper). The
+Perplexity-hosted OpenAI variants (`openai/gpt-5.4-nano`,
+`openai/gpt-5.6-luna`) are **not** used as production fallback: they
+under-detect true hallucinations relative to OpenAI direct (see Recall
+above).
+
+Extraction production remains Gemini 3.1 Flash Lite (Google) with OpenAI
+fallback, as described in the Extraction Results section.
 
 ### Cost Breakdown for Citation Checking
 
@@ -446,29 +493,44 @@ caching does occur for OpenAI (although these costs do not include
 that), but it is relatively small (and the majority of token costs are
 output).
 
-<div class="cell-output cell-output-display cell-output-markdown"
-execution_count="10">
+<div id="tbl-cost">
 
-| Model                        | Provider   | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) |
-|:-----------------------------|:-----------|-----------------:|------------------:|------------:|----------------:|
-| gemini-3.5-flash-lite        | gemini     |             6.14 |              8.44 |       14.59 |            0.41 |
-| google/gemini-3.1-flash-lite | perplexity |            12.15 |              7.72 |       19.87 |            0.55 |
-| gpt-5.4-nano                 | openai     |             7.17 |             16.28 |       23.45 |            0.65 |
-| gpt-5.6-luna                 | openai     |             6.84 |             11.49 |       18.33 |            0.51 |
-| openai/gpt-5.4-nano          | perplexity |             7.34 |              4.84 |       12.18 |            0.34 |
-| openai/gpt-5.6-luna          | perplexity |            11.21 |              8.76 |       19.98 |            0.56 |
+Table 3: Cost and runtime breakdown per full-corpus checker run (36
+papers)
+
+<div class="cell-output cell-output-display cell-output-markdown"
+execution_count="5">
+
+| Model | Provider | Token Cost (USD) | Search Cost (USD) | Total (USD) | Per Paper (USD) | Sec/paper | Wall min |
+|:---|:---|---:|---:|---:|---:|---:|---:|
+| gemini-3.5-flash-lite | gemini | 6.14 | 8.44 | 14.59 | 0.41 | 128.9 | 15.7 |
+| google/gemini-3.1-flash-lite | perplexity | 12.15 | 7.72 | 19.87 | 0.55 | 406.2 | 51.0 |
+| gpt-5.4-nano | openai | 7.17 | 16.28 | 23.45 | 0.65 | 445.5 | 54.4 |
+| gpt-5.6-luna | openai | 6.84 | 11.49 | 18.33 | 0.51 | 328.6 | 39.9 |
+| openai/gpt-5.4-nano | perplexity | 7.34 | 4.84 | 12.18 | 0.34 | 243.3 | 29.7 |
+| openai/gpt-5.6-luna | perplexity | 11.21 | 8.76 | 19.98 | 0.56 | 291.6 | 35.7 |
 
 </div>
 
-The newer 3.5 flash lite model has resulted in lower token costs
-(despite being slightly more expensive than 3.1 flash-lite). One can see
-though across this corpus, costs are typically around 50 cents per paper
-to process, with often more than half of the cost being devoted to web
-search. Perplexity `openai/gpt-5.6-luna` lands near OpenAI direct luna
-on total cost (~\$20 full corpus) despite cheaper Perplexity search
-(\$5/1k vs OpenAI \$10/1k in pricing tables used here): token spend is
-higher on the Perplexity run, so the search savings do not produce a
-cheaper overall check.
+</div>
+
+**Sec/paper** is the mean document wall time from each run’s
+`document_metrics.csv` (how long one paper takes end-to-end under the
+batch concurrency settings). **Wall min** is full-corpus elapsed time
+with up to five documents in parallel.
+
+The newer Gemini-direct 3.5 flash lite model has lower token costs and
+the shortest per-paper times, but is not the production primary for the
+web-search quota reasons above. Across this corpus, costs are typically
+around 50 cents per paper, with often more than half of the cost devoted
+to web search. Production primary (Perplexity 3.1 flash lite) is about
+**\$0.55/paper** and **~7 minutes mean per paper** on this batch setup;
+OpenAI direct luna fallback is about **\$0.51/paper** and **~5.5 minutes
+mean per paper**. Perplexity `openai/gpt-5.6-luna` lands near OpenAI
+direct luna on total cost (~\$20 full corpus) despite cheaper Perplexity
+search (\$5/1k vs OpenAI \$10/1k in pricing tables used here): token
+spend is higher on the Perplexity run, so the search savings do not
+produce a cheaper overall check.
 
 ### Population Estimates of Precision
 
@@ -528,7 +590,7 @@ the citation
 > \[5\] J. Smith, Spatial analysis of crime patterns using GIS-based
 > decision support tools, J. Quant. Criminol. 38 (2) (2022) 125–148
 
-that is in (**assen2026crime?**) in my ground truth, and actually links
+that is in Kebede et al. (2026) in my ground truth, and actually links
 to the (false) google scholar citation.
 
 These methods focus on title matches. So for example, Topaz et al.
@@ -613,36 +675,36 @@ quarto render report.qmd
 This paper was prepared with AI assistance. Drafting and earlier
 iterations used **Claude Opus 4.6** (Anthropic), reviewing prior works
 by Andrew Wheeler (see A. P. Wheeler (2026) for that workflow).
-Additional edits were done by **Grok 4.5** (xAI). Ground-truth labels,
-and final review are done by myself (Andrew P. Wheeler). All errors are
-my own.
+Additional edits, including the Current Production Configuration section
+(Perplexity `google/gemini-3.1-flash-lite` primary, OpenAI
+`gpt-5.6-luna` fallback, and per-paper runtime in the cost table), were
+assisted by **Grok 4.5** (xAI). Ground-truth labels and final review are
+done by myself (Andrew P. Wheeler). All errors are my own.
 
 ## References
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
 <div id="ref-NBERw35482" class="csl-entry">
 
-Canessa, Stella, Gordon B Dahl, Anna Hasselqvist, Costas Meghir, Susan
-Niknami, Mårten Palme, Helmut Rainer, Olof Rosenqvist, and Pengpeng
-Xiao. 2026. “Life After Divorce: Effects of Joint Custody on Parents and
-Children.” Working Paper 35482. Working Paper Series. National Bureau of
+Canessa, Stella, Gordon B Dahl, Anna Hasselqvist, et al. 2026. *Life
+After Divorce: Effects of Joint Custody on Parents and Children*.
+Working Paper No. 35482. Working Paper Series. National Bureau of
 Economic Research. <https://doi.org/10.3386/w35482>.
 
 </div>
 
 <div id="ref-emi2024falsepositives" class="csl-entry">
 
-Emi, Bradley. 2024. “All about False Positives in AI Detectors.”
+Emi, Bradley. 2024. *All about False Positives in AI Detectors*.
 <https://www.pangram.com/blog/all-about-false-positives-in-ai-detectors>.
 
 </div>
 
 <div id="ref-gptzero2026neurips" class="csl-entry">
 
-GPTZero. 2026. “GPTZero Finds 100 New Hallucinations in NeurIPS 2025
-Accepted Papers.” <https://gptzero.me/news/neurips/>.
+GPTZero. 2026. *GPTZero Finds 100 New Hallucinations in NeurIPS 2025
+Accepted Papers*. <https://gptzero.me/news/neurips/>.
 
 </div>
 
@@ -652,6 +714,15 @@ Jacques, Scott, Andrew Wheeler, and Joshua Gerstenfeld. 2026. “Open
 Access, Generative Artificial Intelligence, and the Criminology Evidence
 Base.” *Evidence Base* 1 (2): 2658591.
 <https://doi.org/10.1080/30679125.2026.2658591>.
+
+</div>
+
+<div id="ref-assen2026crime" class="csl-entry">
+
+Kebede, Hailu, Mohammed Motuma Assen, and Merid Abadi Sharew. 2026.
+“Crime Hotspot Analysis and Mapping Using Geospatial Technology in
+Dessie City, Ethiopia.” *Next Research* 5: 101303.
+<https://doi.org/10.1016/j.nexres.2025.101303>.
 
 </div>
 
@@ -666,7 +737,7 @@ Asia Regions: Insights from 2022–2024 DHS Datasets.” *PLOS ONE* 21 (7):
 
 <div id="ref-reviewer3" class="csl-entry">
 
-Reviewer3. n.d. “Reviewer3: Live arXiv Reference Checking.”
+Reviewer3. n.d. *Reviewer3: Live arXiv Reference Checking*.
 <https://reviewer3.com/live/arxiv>.
 
 </div>
@@ -689,7 +760,7 @@ Guide for Analysts with Python*. Crime De-Coder.
 
 <div id="ref-wheeler2026claude" class="csl-entry">
 
-Wheeler, Andrew P. 2026. “Using Claude Code to Help Me Write.”
+Wheeler, Andrew P. 2026. *Using Claude Code to Help Me Write*.
 <https://andrewpwheeler.com/2026/03/20/using-claude-code-to-help-me-write/>.
 
 </div>
@@ -697,8 +768,8 @@ Wheeler, Andrew P. 2026. “Using Claude Code to Help Me Write.”
 <div id="ref-zhao2026llmhallucinationswildlargescale" class="csl-entry">
 
 Zhao, Zhenyue, Yihe Wang, Toby Stuart, Mathijs De Vaan, Paul Ginsparg,
-and Yian Yin. 2026. “LLM Hallucinations in the Wild: Large-Scale
-Evidence from Non-Existent Citations.”
+and Yian Yin. 2026. *LLM Hallucinations in the Wild: Large-Scale
+Evidence from Non-Existent Citations*.
 <https://arxiv.org/abs/2605.07723>.
 
 </div>
