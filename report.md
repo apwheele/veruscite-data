@@ -448,14 +448,14 @@ full-corpus runs, **OpenAI direct `gpt-5.6-luna`** lands at about
 aside from that one low re-run. The same luna weights on **Perplexity**
 (`openai/gpt-5.6-luna`) stay near **44–45%** hallucination recall
 (62–63/141) across the 2026-08-01 and 2026-08-13 runs, with not-verified
-recall still high (~88%) because many misses land in minor error or not
-found rather than verified. Perplexity `openai/gpt-5.4-nano` shows the
-same pattern even more sharply (33% hallucination recall). A Perplexity
-**Nemotron 3.5 Lightning** run is much cheaper but weaker on errors
-(**30.5%** hallucination recall, **36.9%** minor-error recall) and is
-slow: about **12 minutes mean per paper** and **89 minutes** full-corpus
-wall. Provider web-search quality matters as much as the base model for
-this task.
+recall still high (about 88%) because many misses land in minor error or
+not found rather than verified. Perplexity `openai/gpt-5.4-nano` shows
+the same pattern even more sharply (33% hallucination recall). A
+Perplexity **Nemotron 3.5 Lightning** run is much cheaper but weaker on
+errors (**30.5%** hallucination recall, **36.9%** minor-error recall)
+and is slow: about **12 minutes mean per paper** and **89 minutes**
+full-corpus wall. Provider web-search quality matters as much as the
+base model for this task.
 
 That re-run spread is the main reason tables keep multiple rows for the
 same model: FP minor for Perplexity 3.1 flash-lite moved from 0.7% (13)
@@ -497,24 +497,24 @@ running under concurrent documents. On this corpus, Perplexity
 0.6% and not-verified recall around **79–83%**.
 
 Gemini **direct** 3.5 flash-lite remains the fastest and cheapest
-full-corpus configuration in the table below (~26s wall-equivalent per
-paper under concurrent batching, ~\$0.41/paper), but the search quota
-makes it unsuitable as the default production path. It is retained in
-the benchmark for comparison.
+full-corpus configuration in the table below (about 26s wall-equivalent
+per paper under concurrent batching, about \$0.41/paper), but the search
+quota makes it unsuitable as the default production path. It is retained
+in the benchmark for comparison.
 
 **Why OpenAI luna as backup.** Direct OpenAI `gpt-5.6-luna` is the
 fallback when Perplexity is down or returns persistent errors. Across
 three re-runs it has the highest hallucination recall among
-configurations tested (**~72–75%**). Later re-runs are cheaper than the
+configurations tested (**72–75%**). Later re-runs are cheaper than the
 July/early-August pair (the 2026-08-13 OpenAI luna run was about **\$15
 / \$0.42 per paper**). The Perplexity-hosted OpenAI variants
 (`openai/gpt-5.4-nano`, `openai/gpt-5.6-luna`) are **not** used as
 production fallback: they under-detect true hallucinations relative to
 OpenAI direct (see Recall above). Nemotron on Perplexity is an option if
-cost is the only constraint (~\$6.53 full corpus, ~\$0.18/paper), but
-latency is very long (~12 minutes mean per paper, ~89 minutes
-full-corpus wall) and error recall is much weaker, so it is not the
-production default.
+cost is the only constraint (about \$6.53 full corpus, about
+\$0.18/paper), but latency is very long (about 12 minutes mean per
+paper, 89 minutes full-corpus wall) and error recall is much weaker, so
+it is not the production default.
 
 Extraction production remains Gemini 3.1 Flash Lite (Google) with OpenAI
 fallback, as described in the Extraction Results section.
@@ -583,12 +583,12 @@ the latest re-run is about **\$0.30/paper** and roughly **23 minutes**
 full-corpus wall (five documents in parallel). OpenAI direct luna
 fallback on the latest re-run is about **\$0.42/paper** and **32
 minutes** full-corpus wall. Perplexity `openai/gpt-5.6-luna` also got
-cheaper on 2026-08-13 (~\$10.07 full corpus) while keeping the same weak
-hallucination-recall pattern. Perplexity Nemotron is the lowest total
-cost (~\$6.53) and is a possible option on that basis, but wall time is
-much longer (~89 minutes vs ~23 minutes for the latest 3.1 flash-lite
-run) and recall is too low to replace 3.1 flash-lite as the preferred
-production model.
+cheaper on 2026-08-13 (about \$10.07 full corpus) while keeping the same
+weak hallucination-recall pattern. Perplexity Nemotron is the lowest
+total cost (about \$6.53) and is a possible option on that basis, but
+wall time is much longer (89 minutes vs 23 minutes for the latest 3.1
+flash-lite run) and recall is too low to replace 3.1 flash-lite as the
+preferred production model.
 
 ### Population Estimates of Precision
 
