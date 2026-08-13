@@ -150,6 +150,15 @@ partially evaluated AWS Nova-2 lite with their web search (latency was
 too long). Grok 4.3 did well in the benchmark tests but was considerably
 more expensive.
 
+Perplexity also hosts open-weight checkers. **DeepSeek V4 Flash**
+(`perplexity/deepseek-v4-flash-0731`) is **not included** in the tables:
+repeated full-corpus attempts consistently returned HTTP **500 stream /
+internal_error** responses from Perplexity’s Agent API, so there is no
+usable baseline. **Nemotron 3.5 Lightning**
+(`perplexity/nemotron-3.5-lightning-30b-a3b`) did complete a full run
+and is included as a low-cost option, but latency is very long (see Cost
+below).
+
 Extraction does not need web search, and so while I evaluated many other
 models on Bedrock (such as the open source GPT and Gemini models), they
 were not as accurate as the frontier served models. Extraction takes
@@ -157,12 +166,6 @@ around 2 to 3 cents per document, so at this time I am not concerned
 about cost, although in the future likely even smaller open source
 models (especially if fine tuned) will be sufficient for the extraction
 task.
-
-I would consider additional open source models in the future (such as
-DeepSeek flash) for citation checking, although it will be necessary to
-incorporate custom web search and fetch tools in conjunction with the
-served models. If the models are not provided out of the box by
-Perplexity.
 
 ### Verification Categories
 
@@ -449,8 +452,10 @@ recall still high (~88%) because many misses land in minor error or not
 found rather than verified. Perplexity `openai/gpt-5.4-nano` shows the
 same pattern even more sharply (33% hallucination recall). A Perplexity
 **Nemotron 3.5 Lightning** run is much cheaper but weaker on errors
-(**30.5%** hallucination recall, **36.9%** minor-error recall). Provider
-web-search quality matters as much as the base model for this task.
+(**30.5%** hallucination recall, **36.9%** minor-error recall) and is
+slow: about **12 minutes mean per paper** and **89 minutes** full-corpus
+wall. Provider web-search quality matters as much as the base model for
+this task.
 
 That re-run spread is the main reason tables keep multiple rows for the
 same model: FP minor for Perplexity 3.1 flash-lite moved from 0.7% (13)
@@ -481,12 +486,13 @@ Production VerusCite uses the following defaults for citation checking:
 | **Primary checker**  | Perplexity      | `google/gemini-3.1-flash-lite` |
 | **Fallback checker** | OpenAI (direct) | `gpt-5.6-luna`                 |
 
-**Why Perplexity 3.1 Flash Lite as primary.** Google’s Gemini web-search
-stack caps searches at **1,500 per day across all tiers**, which is too
-low for multi-user production load (a single large paper can consume
-dozens of searches after Crossref misses). Perplexity does not impose
-that daily search cap, so agentic verification can keep running under
-concurrent documents. On this corpus, Perplexity
+The current preferred production checker remains **Gemini 3.1 Flash Lite
+with Perplexity web search** (`google/gemini-3.1-flash-lite`). Google’s
+Gemini web-search stack caps searches at **1,500 per day across all
+tiers**, which is too low for multi-user production load (a single large
+paper can consume dozens of searches after Crossref misses). Perplexity
+does not impose that daily search cap, so agentic verification can keep
+running under concurrent documents. On this corpus, Perplexity
 `google/gemini-3.1-flash-lite` re-runs keep hallucination FP at or under
 0.6% and not-verified recall around **79–83%**.
 
@@ -504,9 +510,11 @@ July/early-August pair (the 2026-08-13 OpenAI luna run was about **\$15
 / \$0.42 per paper**). The Perplexity-hosted OpenAI variants
 (`openai/gpt-5.4-nano`, `openai/gpt-5.6-luna`) are **not** used as
 production fallback: they under-detect true hallucinations relative to
-OpenAI direct (see Recall above). Nemotron on Perplexity is also not
-used in production: it is the cheapest full-corpus row (~\$6.53) but
-misses most real errors.
+OpenAI direct (see Recall above). Nemotron on Perplexity is an option if
+cost is the only constraint (~\$6.53 full corpus, ~\$0.18/paper), but
+latency is very long (~12 minutes mean per paper, ~89 minutes
+full-corpus wall) and error recall is much weaker, so it is not the
+production default.
 
 Extraction production remains Gemini 3.1 Flash Lite (Google) with OpenAI
 fallback, as described in the Extraction Results section.
@@ -577,7 +585,10 @@ fallback on the latest re-run is about **\$0.42/paper** and **32
 minutes** full-corpus wall. Perplexity `openai/gpt-5.6-luna` also got
 cheaper on 2026-08-13 (~\$10.07 full corpus) while keeping the same weak
 hallucination-recall pattern. Perplexity Nemotron is the lowest total
-cost (~\$6.53) but is not accurate enough for production.
+cost (~\$6.53) and is a possible option on that basis, but wall time is
+much longer (~89 minutes vs ~23 minutes for the latest 3.1 flash-lite
+run) and recall is too low to replace 3.1 flash-lite as the preferred
+production model.
 
 ### Population Estimates of Precision
 
