@@ -21,6 +21,8 @@
     "google__gemini-3.1-flash-lite_2026-08-13T150253Z",
     "gpt-5.6-luna_2026-08-13T150639Z",
     "openai__gpt-5.6-luna_2026-08-13T133156Z",
-    "perplexity__nemotron-3.5-lightning-30b-a3b_2026-08-13T160830Z"
+    "perplexity__nemotron-3.5-lightning-30b-a3b_2026-08-13T160830Z",
+    "google__gemini-3.5-flash-lite_2026-08-18T124221Z",
+    "google__gemini-3.7-flash_2026-08-18T131716Z"
   ]
 }
