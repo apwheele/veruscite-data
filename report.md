@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-08-18
+2026-08-21
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -26,17 +26,21 @@ Andrew Wheeler
     Citation Checking](#cost-breakdown-for-citation-checking)
   - [<span class="toc-section-number">5.5</span> Population Estimates of
     Precision](#population-estimates-of-precision)
-- [<span class="toc-section-number">6</span> Comparison between my tool
+- [<span class="toc-section-number">6</span> User
+  Feedback](#user-feedback)
+  - [<span class="toc-section-number">6.1</span> Peter Moskos: *Back
+    from the Brink*](#peter-moskos-back-from-the-brink)
+- [<span class="toc-section-number">7</span> Comparison between my tool
   and other
   approaches](#comparison-between-my-tool-and-other-approaches)
-- [<span class="toc-section-number">7</span> Privacy](#privacy)
-- [<span class="toc-section-number">8</span> Limitations and Next
+- [<span class="toc-section-number">8</span> Privacy](#privacy)
+- [<span class="toc-section-number">9</span> Limitations and Next
   Steps](#limitations-and-next-steps)
-- [<span class="toc-section-number">9</span>
+- [<span class="toc-section-number">10</span>
   Reproducibility](#reproducibility)
-- [<span class="toc-section-number">10</span> AI Use
+- [<span class="toc-section-number">11</span> AI Use
   Disclosure](#ai-use-disclosure)
-- [<span class="toc-section-number">11</span> References](#references)
+- [<span class="toc-section-number">12</span> References](#references)
 
 ## The Problem
 
@@ -356,6 +360,7 @@ execution_count="4">
 | google/gemini-3.1-flash-lite | perplexity | 2026-08-13 | 0.6% (11) | 0.9% (17) | 68.8% (97/141) | 79.1% (315/398) |
 | google/gemini-3.5-flash-lite | perplexity | 2026-08-18 | 0.1% (1) | 0.5% (9) | 46.1% (65/141) | 67.1% (267/398) |
 | google/gemini-3.7-flash | perplexity | 2026-08-18 | 0.2% (4) | 0.5% (9) | 72.3% (102/141) | 78.9% (314/398) |
+| google/gemini-3.7-flash | perplexity | 2026-08-21 | 0.1% (2) | 0.6% (12) | 68.1% (96/141) | 81.2% (323/398) |
 | gpt-5.4-nano | openai | 2026-07-30 | 0.2% (3) | 2.2% (42) | 60.3% (85/141) | 88.4% (352/398) |
 | gpt-5.6-luna | openai | 2026-07-30 | 0.2% (3) | 2.5% (47) | 74.5% (105/141) | 88.7% (353/398) |
 | gpt-5.6-luna | openai | 2026-08-03 | 0.1% (2) | 2.8% (52) | 73.8% (104/141) | 89.2% (355/398) |
@@ -449,20 +454,21 @@ re-run recovered to **68.8%** (97/141). Across three independent
 full-corpus runs, **OpenAI direct `gpt-5.6-luna`** lands at about
 **72–75%** (102–105/141), while earlier production **Perplexity
 `google/gemini-3.1-flash-lite`** is usually about **65–70%** (91–98/141)
-aside from that one low re-run. The 2026-08-18 Perplexity
-**`google/gemini-3.7-flash`** run is in the same recall band as direct
-luna – **72.3%** hallucination recall (102/141) and **78.9%**
-not-verified recall (314/398) – with lower minor-error false positives
-(0.5% vs 2.4–2.8% for OpenAI). Perplexity
-**`google/gemini-3.5-flash-lite`** on the same day kept false positives
-low (0.1% hallucination FP, 0.5% minor FP) but hallucination recall
-dropped to **46.1%** (65/141), so it is not the production model. The
-same luna weights on **Perplexity** (`openai/gpt-5.6-luna`) stay near
-**44–45%** hallucination recall (62–63/141) across the 2026-08-01 and
-2026-08-13 runs, with not-verified recall still high (about 88%) because
-many misses land in minor error or not found rather than verified.
-Perplexity `openai/gpt-5.4-nano` shows the same pattern even more
-sharply (33% hallucination recall). A Perplexity **Nemotron 3.5
+aside from that one low re-run. The two Perplexity
+**`google/gemini-3.7-flash`** runs bracket that range: the 2026-08-18
+run had **72.3%** hallucination recall (102/141) and **78.9%**
+not-verified recall (314/398), while the 2026-08-21 run had **68.1%**
+hallucination recall (96/141) and **81.2%** not-verified recall
+(323/398). Both kept false positives low. Perplexity
+**`google/gemini-3.5-flash-lite`** on 2026-08-18 also kept false
+positives low (0.1% hallucination FP, 0.5% minor FP) but hallucination
+recall dropped to **46.1%** (65/141), so it is not the production model.
+The same luna weights on **Perplexity** (`openai/gpt-5.6-luna`) stay
+near **44–45%** hallucination recall (62–63/141) across the 2026-08-01
+and 2026-08-13 runs, with not-verified recall still high (about 88%)
+because many misses land in minor error or not found rather than
+verified. Perplexity `openai/gpt-5.4-nano` shows the same pattern even
+more sharply (33% hallucination recall). A Perplexity **Nemotron 3.5
 Lightning** run is much cheaper but weaker on errors (**30.5%**
 hallucination recall, **36.9%** minor-error recall) and is slow: about
 **12 minutes mean per paper** and **89 minutes** full-corpus wall.
@@ -489,7 +495,7 @@ be high. These are consistently near or over 80% across Gemini and
 OpenAI runs, with the exception of Gemini-direct 3.5 flash lite (mostly
 low minor-error recall), Perplexity 3.5 flash lite (67.1% not-verified
 recall), and Nemotron (63.6% not-verified recall). Perplexity 3.7 flash
-sits just under that band at **78.9%**.
+was **78.9%** on 2026-08-18 and **81.2%** on 2026-08-21.
 
 ### Current Production Configuration
 
@@ -503,15 +509,17 @@ Production VerusCite uses the following defaults for citation checking:
 The current preferred production checker is **Gemini 3.7 Flash with
 Perplexity web search** (`google/gemini-3.7-flash`). It is used because
 it has **overall low false-positive rates**, **reasonable recall**, and
-**competitive latency**. On the 2026-08-18 full-corpus run it posted
-0.2% hallucination FP (4) and 0.5% minor-error FP (9), **72.3%**
-hallucination recall (102/141), **78.9%** not-verified recall, about
-**\$13.39** / **\$0.37 per paper**, and about **30 minutes** full-corpus
-wall (five documents in parallel). That combination is better than
-remaining on 3.1 flash-lite (typically 0.9–1.2% minor-error FP and
-65–70% hallucination recall) or switching to Perplexity 3.5 flash-lite,
-which is cheap and precise but only recovers **46.1%** of true
-hallucinations.
+**competitive latency**. On the 2026-08-21 full-corpus run it posted
+0.1% hallucination FP (2) and 0.6% minor-error FP (12), **68.1%**
+hallucination recall (96/141), **81.2%** not-verified recall (323/398),
+about **\$14.05** / **\$0.39 per paper**, and about **24 minutes**
+full-corpus wall (five documents in parallel). The independent
+2026-08-18 run was similar: 0.2% hallucination FP (4), 0.5% minor-error
+FP (9), 72.3% hallucination recall, and 78.9% not-verified recall. That
+combination is better than remaining on 3.1 flash-lite (typically
+0.9–1.2% minor-error FP and 65–70% hallucination recall) or switching to
+Perplexity 3.5 flash-lite, which is cheap and precise but only recovers
+**46.1%** of true hallucinations.
 
 Google’s Gemini web-search stack caps searches at **1,500 per day across
 all tiers**, which is too low for multi-user production load (a single
@@ -575,6 +583,7 @@ execution_count="5">
 | google/gemini-3.1-flash-lite | perplexity | 2026-08-13 | 6.42 | 4.21 | 10.63 | 0.3 | 185.9 | 22.7 |
 | google/gemini-3.5-flash-lite | perplexity | 2026-08-18 | 6.67 | 4.01 | 10.69 | 0.3 | 250.9 | 31.6 |
 | google/gemini-3.7-flash | perplexity | 2026-08-18 | 9.25 | 4.14 | 13.39 | 0.37 | 237.4 | 29.9 |
+| google/gemini-3.7-flash | perplexity | 2026-08-21 | 9.85 | 4.2 | 14.05 | 0.39 | 193.7 | 23.8 |
 | gpt-5.4-nano | openai | 2026-07-30 | 7.17 | 16.28 | 23.45 | 0.65 | 445.5 | 54.4 |
 | gpt-5.6-luna | openai | 2026-07-30 | 6.84 | 11.49 | 18.33 | 0.51 | 328.6 | 39.9 |
 | gpt-5.6-luna | openai | 2026-08-03 | 6.9 | 11.53 | 18.43 | 0.51 | 386.2 | 47.1 |
@@ -596,25 +605,27 @@ Perplexity 3.1 flash-lite was about **\$19.87 / 51 wall min** and
 **\$22.36 / 58 wall min** in July/early August, then **\$12.06 / 42
 min** and **\$10.63 / 23 min** on 2026-08-13; OpenAI direct luna was
 about **\$18.3–\$18.4** with wall time **40–47 min**, then **\$15.13 /
-32 min** on 2026-08-13. The 2026-08-18 Perplexity 3.7 flash run is about
-**\$13.39 / 30 wall min** (\$0.37/paper); Perplexity 3.5 flash-lite on
-the same day is cheaper (**\$10.69 / 32 min**, \$0.30/paper) but much
-weaker on hallucination recall.
+32 min** on 2026-08-13. The Perplexity 3.7 flash runs were about
+**\$13.39 / 30 wall min** on 2026-08-18 and **\$14.05 / 24 wall min** on
+2026-08-21 (\$0.37 and \$0.39 per paper, respectively); Perplexity 3.5
+flash-lite on 2026-08-18 is cheaper (**\$10.69 / 32 min**, \$0.30/paper)
+but much weaker on hallucination recall.
 
 The newer Gemini-direct 3.5 flash lite model has lower token costs and
 the shortest per-paper times, but is not the production primary for the
 web-search quota reasons above. Across this corpus, costs are typically
 around 30–60 cents per paper, with often more than half of the cost
-devoted to web search. Production primary (Perplexity 3.7 flash) is
-about **\$0.37/paper** and roughly **30 minutes** full-corpus wall (five
-documents in parallel). OpenAI direct luna fallback on the latest re-run
-is about **\$0.42/paper** and **32 minutes** full-corpus wall.
-Perplexity `openai/gpt-5.6-luna` also got cheaper on 2026-08-13 (about
-\$10.07 full corpus) while keeping the same weak hallucination-recall
-pattern. Perplexity Nemotron is the lowest total cost (about \$6.53) and
-is a possible option on that basis, but wall time is much longer (89
-minutes vs 30 minutes for 3.7 flash) and recall is too low to replace
-3.7 flash as the preferred production model.
+devoted to web search. The latest production-primary run (Perplexity 3.7
+flash) was about **\$0.39/paper** and roughly **24 minutes** full-corpus
+wall (five documents in parallel). OpenAI direct luna fallback on the
+latest re-run is about **\$0.42/paper** and **32 minutes** full-corpus
+wall. Perplexity `openai/gpt-5.6-luna` also got cheaper on 2026-08-13
+(about \$10.07 full corpus) while keeping the same weak
+hallucination-recall pattern. Perplexity Nemotron is the lowest total
+cost (about \$6.53) and is a possible option on that basis, but wall
+time is much longer (89 minutes vs 24–30 minutes for 3.7 flash) and
+recall is too low to replace 3.7 flash as the preferred production
+model.
 
 ### Population Estimates of Precision
 
@@ -653,6 +664,58 @@ few bad apples that use AI to generate whole slews of papers. And those
 individuals may have hallucination rates in over 20% of their citations
 (Walters and Wilder 2023). Although with the improvement of the
 generative AI tools, that will likely decrease over time.
+
+## User Feedback
+
+### Peter Moskos: *Back from the Brink*
+
+In August 2026, Peter Moskos reviewed VerusCite’s results for his book
+*Back from the Brink: Inside the NYPD and New York City’s Extraordinary
+1990s Crime Drop* (Moskos 2025). The [original
+report](https://veruscite-data.com/share/-4529DPZzEdaf4GkEYm1BEEXOxFMUthI4TUROEQKob8)
+classified 142 citations as 117 verified, 11 minor errors, 10 not found,
+and 4 hallucinations. Manual review showed that three of the four
+hallucination flags were clear false positives.
+
+The remaining hallucination classification was reasonable:
+
+> Krauss, Clifford. 1995. “New York City Crime Falls But Just Why Is a
+> Mystery.” *The New York Times*. p. A1. January 1.
+> https://www.nytimes.com/1994/12/26/nyregion/drug-sweep-into-queens-is-postponed.html
+
+The title describes one article, but the supplied URL resolves to a
+different article. That mismatch is consistent with the hallucination
+category because the citation combines metadata from two distinct
+sources.
+
+The checker prompt was updated in response. When searching for
+historical newspaper and magazine articles, the agent must try multiple
+search formulations, including the title together with the named
+publisher (for example, the article title plus “New York Times”),
+author, and date. It must rely on direct first-party material to verify
+a citation; indirect sources that merely cite the claimed work are not
+sufficient. If the direct URL cannot be checked because it is blocked,
+paywalled, or otherwise inconclusive, the result should be **not
+found**, without claiming that the citation was fabricated.
+
+PDF link recovery was also improved. In one citation, the visible text
+layer had collapsed `black-self-sufficiency` into
+`blackself-sufficiency`, even though the PDF’s embedded hyperlink still
+contained the correct URL. The extractor now reads PDF link annotations
+and uses the exact embedded target to repair a matching damaged URL in
+the extracted text. This is conservative: it requires the rest of the
+URL to match and does not substitute an unrelated link merely because it
+has the same publisher or hostname.
+
+The [new
+report](https://veruscite-data.com/share/lnhYGVlUu9kZ22E367KA-BUopGGvStvYhB5RM1K_Ruo)
+classifies the same 142 citations as 127 verified, 11 minor errors, 4
+not found, and **0 hallucinations**. The interface now presents
+hallucinations and not found as separate summary categories. It also
+tells users to manually review hallucination flags because false
+positives remain possible, and to review not-found results because that
+category means the system could not make a determination—not that the
+citation is fabricated.
 
 ## Comparison between my tool and other approaches
 
@@ -765,8 +828,10 @@ section, multi-run variance notes for independent checker re-runs
 per-paper runtime in the cost table, the 2026-08-13 re-runs plus
 Nemotron row, and the 2026-08-18 Perplexity Gemini 3.5 flash-lite / 3.7
 flash runs with the production switch to 3.7 flash, were assisted by
-**Grok 4.5 / 4.6** (xAI). Ground-truth labels and final review are done
-by myself (Andrew P. Wheeler). All errors are my own.
+**Grok 4.5 / 4.6** (xAI). The 2026-08-21 Gemini 3.7 Flash benchmark
+update and the Peter Moskos user-feedback case study were prepared with
+**Codex (GPT-5)** (OpenAI). Ground-truth labels and final review are
+done by myself (Andrew P. Wheeler). All errors are my own.
 
 ## References
 
@@ -825,6 +890,14 @@ Mekonen, Enyew Getaneh. 2026. “Prevalence and Associated Factors of
 Intimate Partner Violence Against Reproductive-Age Women in Africa and
 Asia Regions: Insights from 2022–2024 DHS Datasets.” *PLOS ONE* 21 (7):
 1–16. <https://doi.org/10.1371/journal.pone.0353669>.
+
+</div>
+
+<div id="ref-moskos2025backbrink" class="csl-entry">
+
+Moskos, Peter. 2025. *Back from the Brink: Inside the NYPD and New York
+City’s Extraordinary 1990s Crime Drop*. Oxford University Press.
+<https://doi.org/10.1093/oso/9780197797778.001.0001>.
 
 </div>
 
