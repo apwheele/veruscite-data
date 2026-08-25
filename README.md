@@ -1,6 +1,6 @@
 # VerusCite Data
 
-Public ground-truth corpus and reproducible scripts for [VerusCite](https://veruscite-data.com).
+Public ground-truth corpus and reproducible scripts for [VerusCite](https://veruscite.com).
 
 This repo holds labeled citations, model run outputs, and a Quarto report that regenerates benchmark metrics from those artifacts. For metric results, see [`report.md`](report.md) (or [`report.pdf`](report.pdf)).
 

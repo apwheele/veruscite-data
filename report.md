@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-08-24
+2026-08-25
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -59,9 +59,9 @@ reports.
 While AI use is driving a surge in publications (see A. Wheeler 2026 for
 a practical overview), the same large language models that create this
 problem can also be used to verify citations at scale. VerusCite
-([veruscite-data.com](https://veruscite-data.com)) is a tool to
-automatically extract and verify citations from uploaded documents. This
-report documents the accuracy of the V1 verification pipeline against a
+([veruscite.com](https://veruscite.com)) is a tool to automatically
+extract and verify citations from uploaded documents. This report
+documents the accuracy of the V1 verification pipeline against a
 hand-labeled ground truth corpus.
 
 This tool is meant to be a quick and cheap approach to scan a
@@ -675,7 +675,7 @@ generative AI tools, that will likely decrease over time.
 In August 2026, Peter Moskos reviewed VerusCite’s results for his book
 *Back from the Brink: Inside the NYPD and New York City’s Extraordinary
 1990s Crime Drop* (Moskos 2025). The [original
-report](https://veruscite-data.com/share/-4529DPZzEdaf4GkEYm1BEEXOxFMUthI4TUROEQKob8)
+report](https://veruscite.com/share/-4529DPZzEdaf4GkEYm1BEEXOxFMUthI4TUROEQKob8)
 classified 142 citations as 117 verified, 11 minor errors, 10 not found,
 and 4 hallucinations. Manual review showed that three of the four
 hallucination flags were clear false positives.
@@ -711,7 +711,7 @@ URL to match and does not substitute an unrelated link merely because it
 has the same publisher or hostname.
 
 The [new
-report](https://veruscite-data.com/share/lnhYGVlUu9kZ22E367KA-BUopGGvStvYhB5RM1K_Ruo)
+report](https://veruscite.com/share/lnhYGVlUu9kZ22E367KA-BUopGGvStvYhB5RM1K_Ruo)
 classifies the same 142 citations as 127 verified, 11 minor errors, 4
 not found, and **0 hallucinations**. The interface now presents
 hallucinations and not found as separate summary categories. It also
