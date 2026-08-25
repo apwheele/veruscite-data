@@ -1,12 +1,15 @@
 {
   "version": "V1",
-  "created_at": "2026-08-03T15:29:57.749978+00:00",
+  "created_at": "2026-08-25T01:20:41+00:00",
   "pdf_count": 36,
   "ground_truth": "ground_truth.csv",
   "extraction_runs": [
     "gemini-3.1-flash-lite_2026-07-30T172348Z",
+    "gemini-3.1-flash-lite_2026-08-24T231408Z",
+    "gemini-3.5-flash-lite_2026-08-24T203136Z",
     "gpt-5.4-nano_2026-07-30T172348Z",
-    "gpt-5.6-luna_2026-07-30T183252Z"
+    "gpt-5.6-luna_2026-07-30T183252Z",
+    "gpt-5.6-luna_2026-08-24T202405Z"
   ],
   "checking_runs": [
     "gemini-3.5-flash-lite_2026-07-29T175547Z",
@@ -23,6 +26,7 @@
     "openai__gpt-5.6-luna_2026-08-13T133156Z",
     "perplexity__nemotron-3.5-lightning-30b-a3b_2026-08-13T160830Z",
     "google__gemini-3.5-flash-lite_2026-08-18T124221Z",
-    "google__gemini-3.7-flash_2026-08-18T131716Z"
+    "google__gemini-3.7-flash_2026-08-18T131716Z",
+    "google__gemini-3.7-flash_2026-08-21T232001Z"
   ]
 }

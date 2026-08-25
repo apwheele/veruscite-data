@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-08-21
+2026-08-24
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -286,8 +286,11 @@ execution_count="3">
 | Model                 | Real | Correct | Missing | Extra | Rate (%) | Wall min | Docs/min | Cost |
 |:----------------------|-----:|--------:|--------:|------:|---------:|---------:|---------:|-----:|
 | gemini-3.1-flash-lite | 2288 |    2285 |       3 |     3 |     99.9 |      4.9 |      7.4 | 1.15 |
+| gemini-3.1-flash-lite | 2288 |    2272 |      16 |     2 |     99.3 |      4.4 |      8.1 | 1.11 |
+| gemini-3.5-flash-lite | 2288 |    2286 |       2 |     2 |     99.9 |      4.0 |      8.9 | 2.15 |
 | gpt-5.4-nano          | 2288 |    2285 |       3 |     4 |     99.9 |     12.2 |      3.0 | 0.88 |
 | gpt-5.6-luna          | 2288 |    2284 |       4 |     6 |     99.8 |      8.2 |      4.4 | 0.84 |
+| gpt-5.6-luna          | 2288 |    2282 |       6 |     8 |     99.7 |      7.3 |      4.9 | 0.74 |
 
 </div>
 

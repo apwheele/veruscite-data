@@ -1,0 +1,57 @@
+{
+  "run_id": "gpt-5.6-luna_2026-08-24T202405Z",
+  "run_type": "extraction",
+  "provider": "openai",
+  "model": "gpt-5.6-luna",
+  "started_at": "2026-08-24T20:24:05.533250+00:00",
+  "completed_at": "2026-08-24T20:31:25.709381+00:00",
+  "elapsed_seconds": 440.18,
+  "doc_type": "academic",
+  "ocr_backend": "pypdfium2",
+  "liteparse_format": "",
+  "max_concurrent_documents": 5,
+  "extraction_threads_per_document": 3,
+  "document_count": 36,
+  "totals": {
+    "citation_count": 2294,
+    "input_tokens": 709600,
+    "output_tokens": 565095,
+    "total_tokens": 1274695,
+    "cost_usd": 0.742017,
+    "ocr_seconds": 40.1,
+    "extract_seconds": 1978.1
+  },
+  "prompts": {
+    "file": "prompts.json",
+    "git": {
+      "commit": "ded223ba9dd96bc6a5411bf231ba6081e7858da4",
+      "branch": "feature/debug-mcp-bench-prod",
+      "dirty": true,
+      "remote": "git@github.com:apwheele/CiteCheck.git",
+      "repo": "apwheele/CiteCheck",
+      "tree_url": "https://github.com/apwheele/CiteCheck/tree/ded223ba9dd96bc6a5411bf231ba6081e7858da4"
+    },
+    "items": [
+      {
+        "name": "academic_system_prompt",
+        "role": "extraction",
+        "source_file": "python/services/citation_extractor.py",
+        "line_start": 57,
+        "line_end": 104,
+        "sha256": "07dfe553d3baa12ec7476703212a8127e758bf60a8588ae7265860a3f1ca6fa7",
+        "char_count": 8404,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/ded223ba9dd96bc6a5411bf231ba6081e7858da4/python/services/citation_extractor.py#L57-L104"
+      },
+      {
+        "name": "reference_check_prompt",
+        "role": "extraction",
+        "source_file": "python/services/citation_extractor.py",
+        "line_start": 118,
+        "line_end": 121,
+        "sha256": "5f853063d9a1a0ebc495b59d7c5a3c80bf5576a7bb7b65f38189126c4c92eb74",
+        "char_count": 392,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/ded223ba9dd96bc6a5411bf231ba6081e7858da4/python/services/citation_extractor.py#L118-L121"
+      }
+    ]
+  }
+}
