@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-08-24
+2026-08-27
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -59,9 +59,9 @@ reports.
 While AI use is driving a surge in publications (see A. Wheeler 2026 for
 a practical overview), the same large language models that create this
 problem can also be used to verify citations at scale. VerusCite
-([veruscite-data.com](https://veruscite-data.com)) is a tool to
-automatically extract and verify citations from uploaded documents. This
-report documents the accuracy of the V1 verification pipeline against a
+([veruscite.com](https://veruscite.com)) is a tool to automatically
+extract and verify citations from uploaded documents. This report
+documents the accuracy of the V1 verification pipeline against a
 hand-labeled ground truth corpus.
 
 This tool is meant to be a quick and cheap approach to scan a
@@ -285,12 +285,14 @@ execution_count="3">
 
 | Model                 | Real | Correct | Missing | Extra | Rate (%) | Wall min | Docs/min | Cost |
 |:----------------------|-----:|--------:|--------:|------:|---------:|---------:|---------:|-----:|
-| gemini-3.1-flash-lite | 2288 |    2285 |       3 |     3 |     99.9 |      4.9 |      7.4 | 1.15 |
-| gemini-3.1-flash-lite | 2288 |    2272 |      16 |     2 |     99.3 |      4.4 |      8.1 | 1.11 |
+| gemini-3.1-flash-lite | 2288 |    2285 |       3 |     2 |     99.9 |      4.9 |      7.4 | 1.15 |
+| gemini-3.1-flash-lite | 2288 |    2275 |      13 |     4 |     99.4 |      5.6 |      6.4 | 1.11 |
+| gemini-3.1-flash-lite | 2288 |    2272 |      16 |     1 |     99.3 |      4.4 |      8.1 | 1.11 |
 | gemini-3.5-flash-lite | 2288 |    2286 |       2 |     2 |     99.9 |      4.0 |      8.9 | 2.15 |
-| gpt-5.4-nano          | 2288 |    2285 |       3 |     4 |     99.9 |     12.2 |      3.0 | 0.88 |
-| gpt-5.6-luna          | 2288 |    2284 |       4 |     6 |     99.8 |      8.2 |      4.4 | 0.84 |
-| gpt-5.6-luna          | 2288 |    2282 |       6 |     8 |     99.7 |      7.3 |      4.9 | 0.74 |
+| gpt-5.4-nano          | 2288 |    2285 |       3 |     3 |     99.9 |     12.2 |      3.0 | 0.88 |
+| gpt-5.6-luna          | 2288 |    2284 |       4 |     5 |     99.8 |      8.2 |      4.4 | 0.84 |
+| gpt-5.6-luna          | 2288 |    2283 |       5 |     4 |     99.8 |      9.0 |      4.0 | 0.74 |
+| gpt-5.6-luna          | 2288 |    2282 |       6 |     7 |     99.7 |      7.3 |      4.9 | 0.74 |
 
 </div>
 
@@ -313,11 +315,12 @@ markdown in the future).
 Both the extraction part of the pipeline and the citation check part of
 the pipeline have fallback models, as it is common for these LLM
 providers to have downtime with models. The current production version
-of VerusCite uses 3.1 flash lite (served by Google) as the primary
-extraction model (due to both accuracy and cost). The fallback model is
-currently gpt-5.6-luna. While OpenAI (both the 5.4 nano and 5.6 luna
-models) are somewhat cheaper, due to the lower accuracy and time, it is
-not used at this point. (The cost only saves around 1 cent per paper.)
+of VerusCite uses OpenAI’s gpt-5.6-luna as the primary extraction model,
+with Google’s Gemini 3.1 Flash Lite as the fallback. In the 2026-08-27
+full-corpus runs, Luna correctly extracted 2,283 citations with 5
+missing and 4 extra, while Gemini correctly extracted 2,275 with 13
+missing and 4 extra. Luna also cost less for the corpus, although its
+run took longer.
 
 Generally the prompts are constructed in a way that advanced reasoning
 is not necessary. So going up to larger reasoning models (and expanding
@@ -675,7 +678,7 @@ generative AI tools, that will likely decrease over time.
 In August 2026, Peter Moskos reviewed VerusCite’s results for his book
 *Back from the Brink: Inside the NYPD and New York City’s Extraordinary
 1990s Crime Drop* (Moskos 2025). The [original
-report](https://veruscite-data.com/share/-4529DPZzEdaf4GkEYm1BEEXOxFMUthI4TUROEQKob8)
+report](https://veruscite.com/share/-4529DPZzEdaf4GkEYm1BEEXOxFMUthI4TUROEQKob8)
 classified 142 citations as 117 verified, 11 minor errors, 10 not found,
 and 4 hallucinations. Manual review showed that three of the four
 hallucination flags were clear false positives.
@@ -711,7 +714,7 @@ URL to match and does not substitute an unrelated link merely because it
 has the same publisher or hostname.
 
 The [new
-report](https://veruscite-data.com/share/lnhYGVlUu9kZ22E367KA-BUopGGvStvYhB5RM1K_Ruo)
+report](https://veruscite.com/share/lnhYGVlUu9kZ22E367KA-BUopGGvStvYhB5RM1K_Ruo)
 classifies the same 142 citations as 127 verified, 11 minor errors, 4
 not found, and **0 hallucinations**. The interface now presents
 hallucinations and not found as separate summary categories. It also

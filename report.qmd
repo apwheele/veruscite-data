@@ -47,7 +47,7 @@ Fabricated citations in academic papers have grown sharply since the widespread 
 
 Existing peer review and editorial safeguards largely fail to catch these errors before publication. The problem spans disciplines: biomedical research, AI/ML conferences, legal filings, and government reports.
 
-While AI use is driving a surge in publications [see @wheeler2026llmbook for a practical overview], the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite-data.com](https://veruscite-data.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
+While AI use is driving a surge in publications [see @wheeler2026llmbook for a practical overview], the same large language models that create this problem can also be used to verify citations at scale. VerusCite ([veruscite.com](https://veruscite.com)) is a tool to automatically extract and verify citations from uploaded documents. This report documents the accuracy of the V1 verification pipeline against a hand-labeled ground truth corpus.
 
 This tool is meant to be a quick and cheap approach to scan a bibliography for a paper, and determine if a citation is correct, has minor errors, or appears to have more serious issues, such as an AI generated hallucination. This paper serves as reference to the overall architecture and design of the project, as well as a source of false positive and negative rates on a benchmarked corpus of real papers.
 
@@ -171,7 +171,7 @@ Extraction is very accurate across models. Gemini 3.1 Flash Lite (using pypdfium
 
 I also tested `liteparse` with the markdown export format to extract out the text from PDFs, which tended to produce slightly more artifacts -- it does not distinguish line breaks for individual citations as cleanly as pypdfium2, producing a few more missed or merged entries. Results were largely similar overall (and I may migrate to using liteparse with markdown in the future).
 
-Both the extraction part of the pipeline and the citation check part of the pipeline have fallback models, as it is common for these LLM providers to have downtime with models. The current production version of VerusCite uses 3.1 flash lite (served by Google) as the primary extraction model (due to both accuracy and cost). The fallback model is currently gpt-5.6-luna. While OpenAI (both the 5.4 nano and 5.6 luna models) are somewhat cheaper, due to the lower accuracy and time, it is not used at this point. (The cost only saves around 1 cent per paper.)
+Both the extraction part of the pipeline and the citation check part of the pipeline have fallback models, as it is common for these LLM providers to have downtime with models. The current production version of VerusCite uses OpenAI's gpt-5.6-luna as the primary extraction model, with Google's Gemini 3.1 Flash Lite as the fallback. In the 2026-08-27 full-corpus runs, Luna correctly extracted 2,283 citations with 5 missing and 4 extra, while Gemini correctly extracted 2,275 with 13 missing and 4 extra. Luna also cost less for the corpus, although its run took longer.
 
 Generally the prompts are constructed in a way that advanced reasoning is not necessary. So going up to larger reasoning models (and expanding the reasoning budget) does not result in higher accuracy. For OpenAI, you can see that the recent luna model did not result in any more accurate results than nano.
 
@@ -275,7 +275,7 @@ Ultimately they overall rate of 1% hallucinations are a mixture of papers -- mos
 
 ### Peter Moskos: *Back from the Brink*
 
-In August 2026, Peter Moskos reviewed VerusCite's results for his book *Back from the Brink: Inside the NYPD and New York City's Extraordinary 1990s Crime Drop* [@moskos2025backbrink]. The [original report](https://veruscite-data.com/share/-4529DPZzEdaf4GkEYm1BEEXOxFMUthI4TUROEQKob8) classified 142 citations as 117 verified, 11 minor errors, 10 not found, and 4 hallucinations. Manual review showed that three of the four hallucination flags were clear false positives.
+In August 2026, Peter Moskos reviewed VerusCite's results for his book *Back from the Brink: Inside the NYPD and New York City's Extraordinary 1990s Crime Drop* [@moskos2025backbrink]. The [original report](https://veruscite.com/share/-4529DPZzEdaf4GkEYm1BEEXOxFMUthI4TUROEQKob8) classified 142 citations as 117 verified, 11 minor errors, 10 not found, and 4 hallucinations. Manual review showed that three of the four hallucination flags were clear false positives.
 
 The remaining hallucination classification was reasonable:
 
@@ -287,7 +287,7 @@ The checker prompt was updated in response. When searching for historical newspa
 
 PDF link recovery was also improved. In one citation, the visible text layer had collapsed `black-self-sufficiency` into `blackself-sufficiency`, even though the PDF's embedded hyperlink still contained the correct URL. The extractor now reads PDF link annotations and uses the exact embedded target to repair a matching damaged URL in the extracted text. This is conservative: it requires the rest of the URL to match and does not substitute an unrelated link merely because it has the same publisher or hostname.
 
-The [new report](https://veruscite-data.com/share/lnhYGVlUu9kZ22E367KA-BUopGGvStvYhB5RM1K_Ruo) classifies the same 142 citations as 127 verified, 11 minor errors, 4 not found, and **0 hallucinations**. The interface now presents hallucinations and not found as separate summary categories. It also tells users to manually review hallucination flags because false positives remain possible, and to review not-found results because that category means the system could not make a determination—not that the citation is fabricated.
+The [new report](https://veruscite.com/share/lnhYGVlUu9kZ22E367KA-BUopGGvStvYhB5RM1K_Ruo) classifies the same 142 citations as 127 verified, 11 minor errors, 4 not found, and **0 hallucinations**. The interface now presents hallucinations and not found as separate summary categories. It also tells users to manually review hallucination flags because false positives remain possible, and to review not-found results because that category means the system could not make a determination—not that the citation is fabricated.
 
 ## Comparison between my tool and other approaches
 
