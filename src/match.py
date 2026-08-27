@@ -10,6 +10,11 @@ from typing import Any
 import pandas as pd
 
 DEFAULT_MATCH_THRESHOLD = 0.82
+_HTTP_URL_RE = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
+_TRACKING_QUERY_KEY_RE = re.compile(
+    r"^(?:utm_[^=]*|fbclid|gclid|mc_cid|mc_eid)$",
+    re.IGNORECASE,
+)
 
 
 def normalize_string(value: Any) -> str:
@@ -33,6 +38,25 @@ def norm_doi(value: Any) -> str:
     text = re.sub(r"^doi:\s*", "", text)
     text = re.sub(r"\s+", "", text)  # OCR/export noise: "10.1016/ j.nds...."
     return text.rstrip(".)],;").strip()
+
+
+def norm_url(value: Any) -> str:
+    """Normalize a citation URL for exact identity matching."""
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return ""
+    text = str(value).strip().rstrip(".,);]")
+    if not text.lower().startswith(("http://", "https://")):
+        return ""
+    text = text.split("#", 1)[0]
+    if "?" in text:
+        base, query = text.split("?", 1)
+        kept = [
+            part
+            for part in query.split("&")
+            if part and not _TRACKING_QUERY_KEY_RE.match(part.split("=", 1)[0])
+        ]
+        text = base if not kept else f"{base}?{'&'.join(kept)}"
+    return text.rstrip("/").lower()
 
 
 def _norm_year(value: Any) -> str:
@@ -303,11 +327,19 @@ def _author_surnames_fingerprint(authors: list[str]) -> str:
 
 
 def identity_keys(row: pd.Series | dict[str, Any]) -> list[str]:
-    """All identity keys for a citation (DOI, title+surnames, raw prefix)."""
+    """All identity keys for a citation (DOI, URL, title+surnames, raw prefix)."""
     keys: list[str] = []
     doi = norm_doi(_row_value(row, "doi"))
     if doi:
         keys.append(f"doi:{doi}")
+    url = norm_url(_row_value(row, "url"))
+    if not url:
+        raw = _row_value(row, "raw_text")
+        raw_text = "" if raw is None or (isinstance(raw, float) and pd.isna(raw)) else str(raw)
+        match = _HTTP_URL_RE.search(raw_text)
+        url = norm_url(match.group(0)) if match else ""
+    if url:
+        keys.append(f"url:{url}")
     title = normalize_string(_row_value(row, "title"))
     authors_fp = _author_surnames_fingerprint(_authors_list(_row_value(row, "authors")))
     if title:

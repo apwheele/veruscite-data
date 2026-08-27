@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-08-25
+2026-08-27
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -285,12 +285,14 @@ execution_count="3">
 
 | Model                 | Real | Correct | Missing | Extra | Rate (%) | Wall min | Docs/min | Cost |
 |:----------------------|-----:|--------:|--------:|------:|---------:|---------:|---------:|-----:|
-| gemini-3.1-flash-lite | 2288 |    2285 |       3 |     3 |     99.9 |      4.9 |      7.4 | 1.15 |
-| gemini-3.1-flash-lite | 2288 |    2272 |      16 |     2 |     99.3 |      4.4 |      8.1 | 1.11 |
+| gemini-3.1-flash-lite | 2288 |    2285 |       3 |     2 |     99.9 |      4.9 |      7.4 | 1.15 |
+| gemini-3.1-flash-lite | 2288 |    2275 |      13 |     4 |     99.4 |      5.6 |      6.4 | 1.11 |
+| gemini-3.1-flash-lite | 2288 |    2272 |      16 |     1 |     99.3 |      4.4 |      8.1 | 1.11 |
 | gemini-3.5-flash-lite | 2288 |    2286 |       2 |     2 |     99.9 |      4.0 |      8.9 | 2.15 |
-| gpt-5.4-nano          | 2288 |    2285 |       3 |     4 |     99.9 |     12.2 |      3.0 | 0.88 |
-| gpt-5.6-luna          | 2288 |    2284 |       4 |     6 |     99.8 |      8.2 |      4.4 | 0.84 |
-| gpt-5.6-luna          | 2288 |    2282 |       6 |     8 |     99.7 |      7.3 |      4.9 | 0.74 |
+| gpt-5.4-nano          | 2288 |    2285 |       3 |     3 |     99.9 |     12.2 |      3.0 | 0.88 |
+| gpt-5.6-luna          | 2288 |    2284 |       4 |     5 |     99.8 |      8.2 |      4.4 | 0.84 |
+| gpt-5.6-luna          | 2288 |    2283 |       5 |     4 |     99.8 |      9.0 |      4.0 | 0.74 |
+| gpt-5.6-luna          | 2288 |    2282 |       6 |     7 |     99.7 |      7.3 |      4.9 | 0.74 |
 
 </div>
 
@@ -313,11 +315,12 @@ markdown in the future).
 Both the extraction part of the pipeline and the citation check part of
 the pipeline have fallback models, as it is common for these LLM
 providers to have downtime with models. The current production version
-of VerusCite uses 3.1 flash lite (served by Google) as the primary
-extraction model (due to both accuracy and cost). The fallback model is
-currently gpt-5.6-luna. While OpenAI (both the 5.4 nano and 5.6 luna
-models) are somewhat cheaper, due to the lower accuracy and time, it is
-not used at this point. (The cost only saves around 1 cent per paper.)
+of VerusCite uses OpenAI’s gpt-5.6-luna as the primary extraction model,
+with Google’s Gemini 3.1 Flash Lite as the fallback. In the 2026-08-27
+full-corpus runs, Luna correctly extracted 2,283 citations with 5
+missing and 4 extra, while Gemini correctly extracted 2,275 with 13
+missing and 4 extra. Luna also cost less for the corpus, although its
+run took longer.
 
 Generally the prompts are constructed in a way that advanced reasoning
 is not necessary. So going up to larger reasoning models (and expanding
