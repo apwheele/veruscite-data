@@ -362,6 +362,39 @@ def extraction_report(v1_dir: str | Path = "V1") -> pd.DataFrame:
     return pd.DataFrame(rows, columns=columns)
 
 
+# Perplexity checker runs recorded before 2026-09-24 priced Agent API
+# web_search at the standalone Search API rate ($5/1k) instead of $2.50/1k.
+# Newer runs record the charge reported by the API (search_cost_basis).
+LEGACY_PERPLEXITY_SEARCH_OVERCHARGE_PER_CALL = 0.0025
+
+
+def _legacy_search_cost_correction(
+    metadata: dict[str, Any], provider: str, web_search_cost_usd: float
+) -> float:
+    """USD to subtract from a legacy Perplexity run's recorded search cost.
+
+    Removes the $2.50/1k overcharge per recorded search call. Some early runs
+    also include fallback-provider searches at other rates, so the correction
+    is capped at half the recorded search cost rather than halving it outright.
+    """
+    if provider.lower() != "perplexity" or metadata.get("search_cost_basis") == "reported":
+        return 0.0
+    half = web_search_cost_usd / 2
+    calls = (metadata.get("totals") or {}).get("web_search_calls")
+    if calls is None:
+        return round(half, 6)
+    return round(min(half, float(calls) * LEGACY_PERPLEXITY_SEARCH_OVERCHARGE_PER_CALL), 6)
+
+
+def _provider_label(metadata: dict[str, Any]) -> str:
+    """Provider name, tagged with Perplexity's fast search tier when used."""
+    provider = str(metadata.get("provider") or "").strip()
+    for tool in metadata.get("perplexity_web_tools") or []:
+        if tool.get("type") == "web_search" and tool.get("search_type") == "fast":
+            return f"{provider} (fast)"
+    return provider
+
+
 def checking_report(v1_dir: str | Path = "V1") -> pd.DataFrame:
     """One row per checker run (FPs on verified, recall on non-verified labels).
 
@@ -434,11 +467,16 @@ def checking_report(v1_dir: str | Path = "V1") -> pd.DataFrame:
             actual["minor_error"] + actual["hallucination"] + actual["not_found"]
         )
         latency = _latency_stats(run_dir, metadata)
+        provider = str(metadata.get("provider") or "").strip()
+        web_search_cost_usd = _cost_component(metadata, run_dir, "web_search_cost_usd")
+        search_correction = _legacy_search_cost_correction(
+            metadata, provider, web_search_cost_usd
+        )
 
         rows.append(
             {
                 "model": model,
-                "provider": str(metadata.get("provider") or "").strip(),
+                "provider": _provider_label(metadata),
                 "date_run": date_run,
                 "actual_verified": actual["verified"],
                 "actual_minor_error": actual["minor_error"],
@@ -473,10 +511,8 @@ def checking_report(v1_dir: str | Path = "V1") -> pd.DataFrame:
                 "verified_via_crossref": verified_via_crossref,
                 **latency,
                 "token_cost_usd": _cost_component(metadata, run_dir, "token_cost_usd"),
-                "web_search_cost_usd": _cost_component(
-                    metadata, run_dir, "web_search_cost_usd"
-                ),
-                "cost_usd": _cost_usd(metadata, run_dir),
+                "web_search_cost_usd": round(web_search_cost_usd - search_correction, 6),
+                "cost_usd": round(_cost_usd(metadata, run_dir) - search_correction, 6),
                 "run_id": run_id,
             }
         )
