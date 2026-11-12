@@ -1,0 +1,85 @@
+{
+  "run_id": "openai__gpt-6-luna_2026-11-12T150253Z",
+  "run_type": "checking",
+  "provider": "perplexity",
+  "model": "openai/gpt-6-luna",
+  "citation_source": "ground_truth",
+  "started_at": "2026-11-12T15:02:53.838560+00:00",
+  "completed_at": "2026-11-12T15:51:38.513684+00:00",
+  "elapsed_seconds": 2924.68,
+  "max_concurrent_journal": 30,
+  "max_concurrent_other": 10,
+  "max_concurrent_documents": 5,
+  "perplexity_max_steps": 5,
+  "search_cost_basis": "reported",
+  "perplexity_web_tools": [
+    {
+      "type": "web_search",
+      "search_type": "fast",
+      "search_context_size": "medium",
+      "max_results": 5
+    },
+    {
+      "type": "fetch_url",
+      "max_urls": 5
+    }
+  ],
+  "baseten_web_tools": null,
+  "anthropic_web_tools": null,
+  "anthropic_effort": null,
+  "baseten_tool_settings": null,
+  "document_count": 36,
+  "totals": {
+    "citation_count": 2288,
+    "verified": 1846,
+    "not_found": 117,
+    "minor_error": 216,
+    "hallucination": 109,
+    "uncertain": 0,
+    "possible_hallucination": 0,
+    "input_tokens": 60401490,
+    "output_tokens": 590535,
+    "total_tokens": 60992025,
+    "web_search_calls": 1342,
+    "token_cost_usd": 1.976306,
+    "web_search_cost_usd": 1.8715,
+    "cost_usd": 3.847805,
+    "total_citation_latency_seconds": 173107.41,
+    "max_seconds_per_citation": 321.04,
+    "avg_seconds_per_citation": 75.66,
+    "citations_per_minute": 46.94
+  },
+  "prompts": {
+    "file": "prompts.json",
+    "git": {
+      "commit": "f92262dacfa5a0eef7ae6316dfdfbc939595d13b",
+      "branch": "feature/hallmark-static-fixes",
+      "dirty": true,
+      "remote": "git@github.com:apwheele/CiteCheck.git",
+      "repo": "apwheele/CiteCheck",
+      "tree_url": "https://github.com/apwheele/CiteCheck/tree/f92262dacfa5a0eef7ae6316dfdfbc939595d13b"
+    },
+    "items": [
+      {
+        "name": "web_checker_instruction",
+        "role": "checking",
+        "source_file": "python/services/citation_checker.py",
+        "line_start": 290,
+        "line_end": 319,
+        "sha256": "16655b7c27d7ce016922d01c7141827fb65beaab9e20ec1173e727c5575e89db",
+        "char_count": 62721,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/f92262dacfa5a0eef7ae6316dfdfbc939595d13b/python/services/citation_checker.py#L290-L319"
+      },
+      {
+        "name": "struct_instruction",
+        "role": "checking",
+        "source_file": "python/services/citation_checker.py",
+        "line_start": 321,
+        "line_end": 330,
+        "sha256": "665f7db019fa57ecbcfce75c7220d94a35ac61e60adac5bca0ce235d55868283",
+        "char_count": 15519,
+        "github_url": "https://github.com/apwheele/CiteCheck/blob/f92262dacfa5a0eef7ae6316dfdfbc939595d13b/python/services/citation_checker.py#L321-L330"
+      }
+    ]
+  }
+}

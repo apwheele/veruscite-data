@@ -1,6 +1,6 @@
 # VerusCite V1 Benchmark: Citation Verification Accuracy
 Andrew Wheeler
-2026-10-05
+2026-11-12
 
 - [<span class="toc-section-number">1</span> The Problem](#the-problem)
 - [<span class="toc-section-number">2</span> Approach](#approach)
@@ -40,7 +40,11 @@ Andrew Wheeler
   Reproducibility](#reproducibility)
 - [<span class="toc-section-number">11</span> AI Use
   Disclosure](#ai-use-disclosure)
-- [<span class="toc-section-number">12</span> References](#references)
+- [<span class="toc-section-number">12</span> Changelog](#changelog)
+  - [<span class="toc-section-number">12.1</span> 2026-11-12:
+    HALLMARK-driven checker
+    changes](#2026-11-12-hallmark-driven-checker-changes)
+- [<span class="toc-section-number">13</span> References](#references)
 
 ## The Problem
 
@@ -389,6 +393,7 @@ execution_count="4">
 | openai/gpt-5.6-luna | perplexity | 2026-08-13 | 0.2% (3) | 2.0% (38) | 44.0% (62/141) | 87.7% (349/398) |
 | openai/gpt-6-luna | perplexity (fast) | 2026-09-24 | 0.4% (7) | 3.2% (61) | 70.9% (100/141) | 90.2% (359/398) |
 | openai/gpt-6-luna | perplexity | 2026-09-24 | 0.4% (8) | 2.4% (45) | 63.8% (90/141) | 87.4% (348/398) |
+| openai/gpt-6-luna | perplexity (fast) | 2026-11-12 | 0.3% (5) | 2.9% (55) | 70.9% (100/141) | 89.7% (357/398) |
 | perplexity/nemotron-3.5-lightning-30b-a3b | perplexity | 2026-08-13 | 0.1% (1) | 0.5% (10) | 30.5% (43/141) | 63.6% (253/398) |
 
 </div>
@@ -565,6 +570,16 @@ user to compare metadata and does not claim fabrication, so I accept
 more minor-error flags in exchange for higher hallucination recall at
 lower cost.
 
+The 2026-11-12 run re-checks the same configuration after the
+HALLMARK-driven changes listed in the [Changelog](#changelog).
+Hallucination recall was unchanged at **70.9%** (100/141), not-verified
+recall was **89.7%** (357/398), and minor-error recall was **74.4%**
+(151/203, compared with 148/203). False positives were slightly lower:
+**0.3%** (5) hallucination and **2.9%** (55) minor error. Cost was
+**\$3.85** for the corpus and wall time was about 49 minutes.
+Differences of this size also occur between same-configuration re-runs,
+so I read this as no regression on the V1 corpus, not as an improvement.
+
 Google’s Gemini web-search stack caps searches at **1,500 per day across
 all tiers**, which is too low for multi-user production load (a single
 large paper can consume dozens of searches after Crossref misses).
@@ -645,6 +660,7 @@ execution_count="5">
 | openai/gpt-5.6-luna | perplexity | 2026-08-13 | 4.04 | 3.02 | 7.06 | 0.2 | 319.4 | 38.9 |
 | openai/gpt-6-luna | perplexity (fast) | 2026-09-24 | 1.85 | 1.9 | 3.75 | 0.1 | 349.9 | 44.5 |
 | openai/gpt-6-luna | perplexity | 2026-09-24 | 1.58 | 3.84 | 5.42 | 0.15 | 332.4 | 42.4 |
+| openai/gpt-6-luna | perplexity (fast) | 2026-11-12 | 1.98 | 1.87 | 3.85 | 0.11 | 384.9 | 48.7 |
 | perplexity/nemotron-3.5-lightning-30b-a3b | perplexity | 2026-08-13 | 1.66 | 2.62 | 4.27 | 0.12 | 730.2 | 88.7 |
 
 </div>
@@ -887,9 +903,54 @@ flash runs with the production switch to 3.7 flash, were assisted by
 update and the Peter Moskos user-feedback case study were prepared with
 **Codex (GPT-5)** (OpenAI). The 2026-09 GPT-6 Luna and Perplexity
 fast-search benchmark update, including the Perplexity search-price
-correction, was prepared with **Claude Opus 5.5** (Anthropic).
+correction, was prepared with **Claude Opus 5.5** (Anthropic). The
+2026-11 HALLMARK-driven checker changes, the 2026-11-12 re-run, and the
+Changelog were prepared with **Claude Fable 5.2** (Anthropic).
 Ground-truth labels and final review are done by myself (Andrew P.
 Wheeler). All errors are my own.
+
+## Changelog
+
+### 2026-11-12: HALLMARK-driven checker changes
+
+I ran VerusCite on the public splits of the HALLMARK benchmark (Kim et
+al. 2026), 812 valid and 1,260 hallucinated BibTeX entries. The full
+analysis is at
+[github.com/apwheele/VerusCiteHallmark](https://github.com/apwheele/VerusCiteHallmark).
+Of the valid entries, 767 came back verified. That run showed three
+errors in the checker, and the production checker changed as follows.
+
+- **Wrong or non-existent venue on a real DOI.** When a DOI resolved and
+  the title and authors matched, the static CrossRef check did not
+  compare the cited venue with the venue on the record. HALLMARK entries
+  that kept a real DOI and swapped in another or an invented venue were
+  verified (41 entries). The DOI path now sends the citation to the
+  web-search checker when the cited venue clearly differs from the
+  record, as the title-search path already did.
+- **Wrong year.** A close title and author match was enough to verify,
+  whatever the year. HALLMARK entries dated 2030 to 2036 for papers
+  published in 2021 to 2023 were verified (17 entries). A static match
+  is now a minor error when the cited year is two or more years from
+  every year CrossRef holds for the work (issued, print, online). Any
+  verified citation dated two or more years after the date of the check
+  is also a minor error. A one-year difference is still handled by the
+  online-first versus issue-year rule, and preprints and books are
+  exempt.
+- **Author order.** Three valid HALLMARK entries were flagged for author
+  order when the cited order matched the official record. In a repeat
+  test, the checker took the order from a DOI landing page that lists
+  authors alphabetically. The prompt now requires a position-by-position
+  comparison and does not accept re-sorted listings as the byline order,
+  and the checker is told when the cited order matches the CrossRef
+  record.
+
+On the V1 corpus these changes left the 2026-11-12 run within re-run
+variance of the 2026-09-24 run (see [Current Production
+Configuration](#current-production-configuration)). V1 has few citations
+of these kinds, so the effect shows on HALLMARK and not here: re-checked
+against CrossRef, all 17 future-date entries became minor errors and 39
+of the 41 venue entries are no longer verified by the static check. I
+have not re-run the full HALLMARK benchmark with the new checker.
 
 ## References
 
@@ -939,6 +1000,14 @@ Kebede, Hailu, Mohammed Motuma Assen, and Merid Abadi Sharew. 2026.
 “Crime Hotspot Analysis and Mapping Using Geospatial Technology in
 Dessie City, Ethiopia.” *Next Research* 5: 101303.
 <https://doi.org/10.1016/j.nexres.2025.101303>.
+
+</div>
+
+<div id="ref-kim2026hallmark" class="csl-entry">
+
+Kim, Kayoon, Wieland Brendel, and Patrik Reizinger. 2026. *HALLMARK: How
+to Diagnose LLM Citation Verifiers and When to Deploy Them*.
+<https://arxiv.org/abs/2607.18360>.
 
 </div>
 
